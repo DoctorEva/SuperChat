@@ -3,17 +3,19 @@
 
 #include <ncurses.h>
 #include <stdlib.h>
+#include <string.h>
+#include <iostream>
 
 #define MAX_USERS 50
 
 class Chatroom
 {
 
-}
+};
 class Server
 {
 
-}
+};
 
 class Client_Window
 {
@@ -35,4 +37,7 @@ class Client_Window
   void send_upload_request(std::string filename); // Sends a filename to Chatroom for upload
   void send_signoff_to_server(); // Exit the server and ends the program.
   void send_chatroom_delete(); // Tells the chatroom to delete itself.
-}
+};
+
+
+#endif
