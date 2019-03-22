@@ -21,7 +21,7 @@ class Client_Window
 {
   Chatroom* current_chatroom;
   Server* current_server;
-  std::string username;
+  char* username;
  public:
   void GUI_main(); // The handler for the GUI thread
   void set_chatroom(Chatroom* room);
