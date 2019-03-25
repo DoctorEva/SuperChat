@@ -7,7 +7,7 @@
 #include <iostream>
 
 #define MAX_USERS 50
-
+#define NICKNAME_CHARS 20 // To be changed. // Character limit of input for nicknames
 
 class Client_Window
 {
@@ -23,8 +23,9 @@ class Client_Window
 
   void add_blacklist(); // Opens Superchat~ and adds an entry
   void remove_blacklist();// Opens Superchat~ and deletes a specific entry
+  void refresh_chat(WINDOW* chatwindow, int offset = 0);
 
-  void send_message_to_chat(std::string message); // sends a message to a chatroom. Depends on Chatroom.
+  void send_message_to_chat(char* message); // sends a message to a chatroom. Depends on Chatroom.
   void send_download_request(); // calls Download from the chatroom. Depends on Chatroom
   void send_upload_request(std::string filename); // Sends a filename to Chatroom for upload. Depends on Chatroom
   void send_signoff_to_server(); // Exit the server and ends the program. Depends on Server.
