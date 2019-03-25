@@ -4,3 +4,6 @@ ex: superchat_GUI.o src/main.cpp
 	$(CXX) $(CXXFLAGS) -o SuperChat SuperChat_GUI.o src/main.cpp $(SUPERCHATFLAGS)
 superchat_GUI.o: src/SuperChat_GUI.cpp src/SuperChat.h
 	$(CXX) $(CXXFLAGS) -c src/SuperChat_GUI.cpp $(SUPERCHATFLAGS)
+
+clean:
+	-rm superchat_GUI.o
