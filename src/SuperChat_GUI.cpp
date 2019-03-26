@@ -34,9 +34,12 @@ void Client_Window::display_Login()
       echo();
       mvwgetstr(Login_Window, 8, 3, input_name);
       input_name[NICKNAME_CHARS] = '\0'; // Truncates the string. // TODO - Code for when username is taken.
+      wmove(Login_Window, 9, 3);
+      wclrtobot(Login_Window);
+      box(Login_Window, 0, 0);
       mvwprintw(Login_Window, 9, 3, "Confirm \"%s\"? y to continue, any key to redo.", input_name);
-      cbreak();
       noecho();
+      wrefresh(Login_Window);
       ch = wgetch(Login_Window);
       //wprintw(Login_Window, "%d read from the keyboard, hopefully %c will be taken.", ch, ch);
     }
@@ -67,17 +70,17 @@ void Client_Window::display_Chatroom()
   while(ch != 80) //  On F1 pressed.
     {
       move(20,0);
-      clrtoeol();
+      clrtobot();
+      noecho();
       refresh();
       mvwprintw(Chatroom_Window,1,1, "<dev> This is a new window, %s! %d  %d %d ", username, ch, tab, chat_offset);
+      wrefresh(Chatroom_Window);
       if(tab == 0) // On the CHAT tab
 	{
 	  mvprintw(2,0, "CHAT | Users | Shared Files | Blacklist");
 	  mvprintw(20,0, ">> Press Enter to begin typing");
 	  refresh();
-	  refresh_chat(Chatroom_Window); // Not implemented yet.
-	  wrefresh(Chatroom_Window);
-	  
+	  refresh_chat(Chatroom_Window, chat_offset); // Not implemented yet.
 	  ch = getch();
 	  if(ch == 10) // On Enter
 	    {
@@ -87,41 +90,58 @@ void Client_Window::display_Chatroom()
 	      clrtoeol();
 	      refresh();
 	      mvgetstr(20, 3, input_mssg);
-	      mvwprintw(Chatroom_Window, 2,1,"<dev> %s: %s", username, input_mssg);
+	      //mvwprintw(Chatroom_Window, 1,1,"<dev> %s: %s", username, input_mssg);
 	      send_message_to_chat(input_mssg); // Sends message to Chatroom for handling.
 	      refresh_chat(Chatroom_Window);
 	    }
 	  else if(ch == 65) // On UP arrow
 	    {
 	      //Increment Chat offset to let the user scroll up
-	      chat_offset ++; // May need to be limited to the # of messages total.
-	      refresh_chat(Chatroom_Window, chat_offset);
+	      chat_offset ++; // TODO - need to be limited to the # of messages total.
+	      //refresh_chat(Chatroom_Window, chat_offset); // This is probably redundant.
 	    }
 	  else if(ch == 66) // On DOWN arrow
 	    {
 	      chat_offset = 0; // Returns the user to the most recent message.
-	      refresh_chat(Chatroom_Window, chat_offset);
+	      //refresh_chat(Chatroom_Window, chat_offset);
 	    }
 	}
       else if(tab == 1) // On the USERS tab
 	{
 	  mvprintw(2,0, "Chat | USERS | Shared Files | Blacklist");
+	  mvprintw(20, 0, " e - blacklist selected ");
 	  refresh();
-
+	  refresh_list_tab(Chatroom_Window, chat_offset);
 	  ch = getch();
+	  if(ch == 101) // On e
+	    {
+	      // TODO - add the selected name to the blacklist (~Superchat file)
+	    }
+	  else if(ch == 65) // On Up Arrow
+	    {
+	      chat_offset ++;
+	      int x = 1; // Temp, should be set to the current number of users in the chatroom. 
+	      chat_offset = chat_offset % x;
+	    }
+	  else if(ch == 66) // On Down Arrow
+	    {
+	      chat_offset = 0;
+	    }
 	}
       else if(tab == 2) // On the Shared Files tab
 	{
 	  mvprintw(2,0, "Chat | Users | SHARED FILES | Blacklist");
+	  mvprintw(20, 0, " e - download selected");
 	  refresh();
-
+	  // TODO - display the files shared on the system. Allow them to select one to download.
 	  ch = getch();
 	}
       else if(tab == 3) // On the Blacklist tab
 	{
 	  mvprintw(2,0, "Chat | Users | Shared Files | BLACKLIST");
+	  mvprintw(20, 0, " e - unban selected");
 	  refresh();
-
+	  
 	  ch = getch();
 	}
       
@@ -132,12 +152,17 @@ void Client_Window::display_Chatroom()
 	    {
 	      tab += 4;
 	    }
+	  chat_offset = 0;
 	}
       if(ch == 67) // On Right Arrow, switch tabs.
 	{
 	  tab++;
 	  tab = tab % 4;
+	  chat_offset = 0;
 	}
+      werase(Chatroom_Window);
+      box(Chatroom_Window, 0, 0);
+      wrefresh(Chatroom_Window);
     }
   werase(Chatroom_Window);
   wrefresh(Chatroom_Window);
@@ -152,7 +177,7 @@ void Client_Window::display_ChatroomSelect()
   initscr();
   mvprintw(0,0, "F1 : Switch to Chatroom Window");
   mvprintw(1,0, "UP and DOWN to select a chatroom");
-  mvprintw(20,0, " r - Signout ");
+  mvprintw(20,0, " r - Signout | e - join chatroom | q - delete chatroom");
   int ch = 0;
   int selection_offset = 0;
   WINDOW* Select_Window;
@@ -163,6 +188,8 @@ void Client_Window::display_ChatroomSelect()
 
   while(ch != 80) // On F1 pressed,
     {
+      refresh_chatselect(Select_Window);
+      
       if(ch == 114) // On r pressed
 	{
 	  delwin(Select_Window);
@@ -174,11 +201,23 @@ void Client_Window::display_ChatroomSelect()
 	}
       else if(ch == 65) // On UP pressed
 	{
-
+	  int x = 1; // Temp, X should be set to the # of chatrooms on the server.
+	  selection_offset ++;
+	  selection_offset = selection_offset % x;
 	}
       else if(ch == 66) // On DOWN pressed
 	{
-
+	  selection_offset --;
+	  if(selection_offset < 0)
+	    selection_offset = 0;
+	}
+      else if(ch == 101) // On e pressed
+	{
+	  //TODO - Join the selected chatroom.
+	}
+      else if(ch == 113) // on q pressed
+	{
+	  //TODO - delete the chatroom IF it is empty.
 	}
       noecho();
       ch = getch();
@@ -200,6 +239,24 @@ void Client_Window::send_message_to_chat(char* message)
 
 }
 void Client_Window::refresh_chat(WINDOW* chatwindow, int offset)
+{
+
+  wrefresh(chatwindow);
+}
+void Client_Window::refresh_chatselect(WINDOW* chatselectwindow, int offset)
+{
+
+  wrefresh(chatselectwindow);
+}
+void Client_Window::refresh_blacklist_tab(WINDOW* chatwindow, int offset)
+{
+
+}
+void Client_Window::refresh_list_tab(WINDOW* chatwindow, int offset)
+{
+
+}
+void Client_Window::refresh_file_tab(WINDOW* chatwindow, int offset)
 {
 
 }

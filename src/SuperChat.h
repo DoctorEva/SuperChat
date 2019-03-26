@@ -24,6 +24,10 @@ class Client_Window
   void add_blacklist(); // Opens Superchat~ and adds an entry
   void remove_blacklist();// Opens Superchat~ and deletes a specific entry
   void refresh_chat(WINDOW* chatwindow, int offset = 0);
+  void refresh_chatselect(WINDOW* chatselectwindow, int offset = 0);
+  void refresh_blacklist_tab(WINDOW* chatwindow, int offset = 0);
+  void refresh_list_tab(WINDOW* chatwindow, int offset = 0);
+  void refresh_file_tab(WINDOW* chatwindow, int offset = 0);
 
   void send_message_to_chat(char* message); // sends a message to a chatroom. Depends on Chatroom.
   void send_download_request(); // calls Download from the chatroom. Depends on Chatroom
