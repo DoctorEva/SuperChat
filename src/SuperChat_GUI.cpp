@@ -84,7 +84,7 @@ void Client_Window::display_Chatroom()
     clrtobot();
     noecho();
     refresh();
-    mvwprintw(Chatroom_Window,1,1, "<dev> This is a new window, %s! %d  %d %d ", username, ch, tab, chat_offset);
+    //mvwprintw(Chatroom_Window,1,1, "<dev> This is a new window, %s! %d  %d %d ", username, ch, tab, chat_offset);
     wrefresh(Chatroom_Window);
     switch(tab)
     {
@@ -123,63 +123,99 @@ void Client_Window::display_Chatroom()
         mvprintw(2,0, "Chat | USERS | Shared Files | Blacklist");
         mvprintw(20, 0, " e - blacklist selected ");
         refresh();
-        refresh_list_tab(Chatroom_Window, chat_offset);
-        ch = getch();
-        switch(ch)
+        x = 0; // Temp, should be set to the current number of users in the chatroom.
+        if(x>0)
         {
-          case 101: // On e
-            //TODO - add the selected name to the blacklist.
-            break;
-          case 65: // On Up Arrow
-            chat_offset ++;
-            x = 3; // Temp, should be set to the current number of users in the chatroom.
-            chat_offset = chat_offset % x;
-            break;
-          case 66: // On Down Arrow
-            chat_offset = 0;
-            break;
+          refresh_list_tab(Chatroom_Window, chat_offset);
+        }
+        else
+        {
+          mvwprintw(Chatroom_Window, 1, 1, "No users present! How are you here?..");
+          wrefresh(Chatroom_Window);
+        }
+        ch = getch();
+
+        if(x > 0)
+        {
+          switch(ch)
+          {
+            case 101: // On e
+              //TODO - add the selected name to the blacklist.
+              break;
+            case 65: // On Up Arrow
+              chat_offset ++;
+              chat_offset = chat_offset % x;
+              break;
+            case 66: // On Down Arrow
+              chat_offset = 0;
+              break;
+          }
         }
         break;
       case SHARED:
         mvprintw(2,0, "Chat | Users | SHARED FILES | Blacklist");
         mvprintw(20, 0, " e - download selected");
         refresh();
-        refresh_file_tab(Chatroom_Window, chat_offset);
-        ch = getch();
-        switch(ch)
+        x = 0; // Temp, should be set to the current number of files in the chatroom.
+        if(x>0)
         {
-          case 101: // on e
-            // TODO - Send the required info to the server to copy the file selected.
-            break;
-          case 65: // on up arrow
-            chat_offset ++;
-            x = 3; // Temp, should be set to the current number of files in the chatroom.
-            chat_offset = chat_offset % x;
-            break;
-          case 66: // On Down arrow
-            chat_offset = 0;
-            break;
+          refresh_file_tab(Chatroom_Window, chat_offset);
+        }
+        else
+        {
+          mvwprintw(Chatroom_Window, 1, 1, "No shared files.");
+          wrefresh(Chatroom_Window);
+        }
+        ch = getch();
+        if(x>0)
+        {
+          switch(ch)
+          {
+            case 101: // on e
+              // TODO - Send the required info to the server to copy the file selected.
+              break;
+            case 65: // on up arrow
+              chat_offset ++;
+              x = 3; // Temp, should be set to the current number of files in the chatroom.
+              chat_offset = chat_offset % x;
+              break;
+            case 66: // On Down arrow
+              chat_offset = 0;
+              break;
+          }
         }
         break;
       case BLACKLIST:
         mvprintw(2,0, "Chat | Users | Shared Files | BLACKLIST");
         mvprintw(20, 0, " e - unban selected");
         refresh();
-        refresh_blacklist_tab(Chatroom_Window, chat_offset);
-        ch = getch();
-        switch(ch)
+        x = 0; // Temp, should be set to the current number of names on blacklist.
+        if(x>0)
         {
-          case 101: // on e
-            // TODO - remove the selected name from the blacklist.
-            break;
-          case 65: // on up arrow
-            chat_offset ++;
-            x = 3; // Temp, should be set to the current number of names on blacklist.
-            chat_offset = chat_offset % x;
-            break;
-          case 66: // On Down arrow
-            chat_offset = 0;
-            break;
+          refresh_blacklist_tab(Chatroom_Window, chat_offset);
+        }
+        else
+        {
+          mvwprintw(Chatroom_Window, 1, 1, "No blacklisted users.");
+          wrefresh(Chatroom_Window);
+        }
+        ch = getch();
+        if(x>0)
+        {
+          switch(ch)
+          {
+            case 101: // on e
+              // TODO - remove the selected name from the blacklist.
+              break;
+            case 65: // on up arrow
+              chat_offset ++;
+              x = 3; // Temp, should be set to the current number of names on blacklist.
+              chat_offset = chat_offset % x;
+              break;
+            case 66: // On Down arrow
+              chat_offset = 0;
+              break;
+          }
         }
         break;
     }
@@ -213,6 +249,7 @@ void Client_Window::display_Chatroom()
 }
 void Client_Window::display_ChatroomSelect()
 {
+  // Initialize the chatroom select screen
   printf("<dev> display ChatroomSelect called.\n");
   initscr();
   mvprintw(0,0, "F1 : Switch to Chatroom Window");
@@ -225,43 +262,40 @@ void Client_Window::display_ChatroomSelect()
   box(Select_Window, 0,0);
   wrefresh(Select_Window);
   refresh();
+  int x;
 
-  while(ch != 80) // On F1 pressed,
+  while(ch != 80) // On F1 pressed, switch back to chatroom window.
   {
     refresh_chatselect(Select_Window);
-
-    if(ch == 114) // On r pressed
+    switch(ch)
     {
-      delwin(Select_Window);
-      endwin();
-      send_chatroom_delete();
-      printf("Exiting by signout\n");
-      // TODO - Sign the user out of the Server.
-      exit(0);
-    }
-    else if(ch == 65) // On UP pressed
-    {
-      int x = 1; // Temp, X should be set to the # of chatrooms on the server.
-      selection_offset ++;
-      selection_offset = selection_offset % x;
-    }
-    else if(ch == 66) // On DOWN pressed
-    {
-      selection_offset --;
-      if(selection_offset < 0)
-      selection_offset = 0;
-    }
-    else if(ch == 101) // On e pressed
-    {
-      //TODO - Join the selected chatroom.
-    }
-    else if(ch == 113) // on q pressed
-    {
-      //TODO - delete the chatroom IF it is empty.
+      case 114: // on r pressed, signout and exit the program
+        delwin(Select_Window);
+        endwin();
+        send_chatroom_delete();
+        printf("Exiting by signout\n");
+        // TODO - Sign the user out of the Server.
+        exit(0);
+        break;
+      case 101: // on e pressed, switch to the selected chatroom
+        break;
+      case 113: // On q pressed, delete the selected chatroom IF it is empty.
+        break;
+      case 65: // on up arrow pressed
+        x = 1; // Temp, X should be set to the # of chatrooms on the server.
+        selection_offset ++;
+        selection_offset = selection_offset % x;
+        break;
+      case 66:
+        selection_offset --;
+        if(selection_offset < 0)
+          selection_offset = 0;
+        break;
     }
     noecho();
     ch = getch();
   }
+  // Switching to the Chatroom window, free the screen.
   delwin(Select_Window);
   endwin();
 }
