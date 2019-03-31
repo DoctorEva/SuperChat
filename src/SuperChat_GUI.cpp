@@ -334,9 +334,10 @@ void Client_Window::refresh_chat(WINDOW* chatwindow, int offset, std::vector<cha
   int pos_y = 1;
   int pos_x = 1;
   int i;
-  for(i=offset; i<messages.size() && pos_y < 20; i++)
+
+  for(i=offset; i<messages.size() && pos_y < 15; i++)
   {
-    mvwprintw(chatwindow, pos_y, 1, "%s : %s\n", username, messages[i]);
+    mvwprintw(chatwindow, pos_y, 1, "%s : %s\n", username, messages[messages.size() - i - 1]);
     getyx(chatwindow, pos_y, pos_x);
   }
   box(chatwindow,0,0);
