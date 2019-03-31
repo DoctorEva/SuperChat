@@ -15,7 +15,7 @@ void Client_Window::display_Login()
   WINDOW *Login_Window;
   int startx, starty, width, height;
   char input_name[NICKNAME_CHARS];
-  int num_users = 0; // NOT IMPLEMENTED HERE - to be taken from Server.
+  int num_users = 0; // NOT IMPLEMENTED HERE - to be taken from Server. // num_users = current_server.get_num_users()
   height = 20;
   width = 80;
   starty = (LINES - height) / 2;
