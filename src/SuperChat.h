@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <iostream>
+#include <vector>
 
 #define MAX_USERS 50
 #define NICKNAME_CHARS 20 // To be changed. // Character limit of input for nicknames
@@ -23,7 +24,7 @@ class Client_Window
 
   void add_blacklist(); // Opens Superchat~ and adds an entry
   void remove_blacklist();// Opens Superchat~ and deletes a specific entry
-  void refresh_chat(WINDOW* chatwindow, int offset = 0);
+  void refresh_chat(WINDOW* chatwindow, int offset, std::vector<char*> messages);
   void refresh_chatselect(WINDOW* chatselectwindow, int offset = 0);
   void refresh_blacklist_tab(WINDOW* chatwindow, int offset = 0);
   void refresh_list_tab(WINDOW* chatwindow, int offset = 0);

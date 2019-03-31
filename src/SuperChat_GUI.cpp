@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <ncurses.h>
 #include <string.h>
+#include <vector>
+#include <iostream>
 
 #include "SuperChat.h"
 
@@ -30,14 +32,18 @@ void Client_Window::display_Login()
   int join_success = 0;
   while(!join_success)
   {
-    while(ch != 121) // On 'y'
+    while(ch != 121) // On 'y' and input_name is not empty, break loop.
     {
       mvwprintw(Login_Window,7, 3, "%s",mssg3);
       wrefresh(Login_Window);
       wmove(Login_Window, 8, 3);
       wclrtoeol(Login_Window);
       echo();
-      mvwgetstr(Login_Window, 8, 3, input_name);
+      input_name[0] = '\0';
+      while(input_name[0]=='\0')
+      {
+        mvwgetstr(Login_Window, 8, 3, input_name);
+      }
       input_name[NICKNAME_CHARS] = '\0'; // Truncates the string. // TODO - Code for when username is taken.
       wmove(Login_Window, 9, 3);
       wclrtobot(Login_Window);
@@ -78,6 +84,8 @@ void Client_Window::display_Chatroom()
   box(Chatroom_Window, 0,0);
   int chat_offset = 0; // Allow the user to scroll through chat.
   int x; // Used as a storage space for now.
+  std::vector<char*> messageList; // Temporary - used to test chatroom messages.
+
   while(ch != 80) //  On F1 pressed.
   {
     move(20,0);
@@ -92,20 +100,21 @@ void Client_Window::display_Chatroom()
         mvprintw(2,0, "CHAT | Users | Shared Files | Blacklist");
         mvprintw(20,0, ">> Press Enter to begin typing");
         refresh();
-        refresh_chat(Chatroom_Window, chat_offset);
+        refresh_chat(Chatroom_Window, chat_offset, messageList);
         ch = getch();
         switch(ch)
         {
           case 10: // On enter
             echo();
-            char input_mssg[200];
+            char* input_mssg;
+            input_mssg = (char*)malloc(sizeof(char)*100); // Tempoary, memory allocation handled by others.
             move(20,3);
             clrtoeol();
             refresh();
             mvgetstr(20, 3, input_mssg);
             //mvwprintw(Chatroom_Window, 1,1,"<dev> %s: %s", username, input_mssg);
             send_message_to_chat(input_mssg); // Sends message to Chatroom for handling.
-            refresh_chat(Chatroom_Window);
+            messageList.push_back(input_mssg); // Temporary, for experimenting.
             break;
           case 65: // On up arrow
             //Increment Chat offset to let the user scroll up
@@ -246,6 +255,14 @@ void Client_Window::display_Chatroom()
   refresh();
   delwin(Chatroom_Window);
   endwin();
+  // free allocated memory.
+  int i;
+  for(i=messageList.size()-1; messageList.size() != 0 ;i--)
+  {
+    char* memoryspace;
+    free(messageList[i]);
+    messageList.pop_back();
+  }
 }
 void Client_Window::display_ChatroomSelect()
 {
@@ -312,9 +329,17 @@ void Client_Window::send_message_to_chat(char* message)
 {
 
 }
-void Client_Window::refresh_chat(WINDOW* chatwindow, int offset)
+void Client_Window::refresh_chat(WINDOW* chatwindow, int offset, std::vector<char*> messages)
 {
-
+  int pos_y = 1;
+  int pos_x = 1;
+  int i;
+  for(i=offset; i<messages.size() && pos_y < 20; i++)
+  {
+    mvwprintw(chatwindow, pos_y, 1, "%s : %s\n", username, messages[i]);
+    getyx(chatwindow, pos_y, pos_x);
+  }
+  box(chatwindow,0,0);
   wrefresh(chatwindow);
 }
 void Client_Window::refresh_chatselect(WINDOW* chatselectwindow, int offset)
