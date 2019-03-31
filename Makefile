@@ -6,4 +6,4 @@ superchat_GUI.o: src/SuperChat_GUI.cpp src/SuperChat.h
 	$(CXX) $(CXXFLAGS) -c src/SuperChat_GUI.cpp $(SUPERCHATFLAGS)
 
 clean:
-	-rm superchat_GUI.o
+	-rm *.o
