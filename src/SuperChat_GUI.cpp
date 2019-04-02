@@ -7,9 +7,10 @@
 
 #include "SuperChat.h"
 
+// Display an initial prompt to the user, asking them to enter a nickname.
 void Client_Window::display_Login()
 {
-  // Display initial prompt to the user
+  // Formatting the window.
   initscr();
   printf("<dev> Display login Window Called\n");
   WINDOW *Login_Window;
@@ -28,23 +29,25 @@ void Client_Window::display_Login()
   char mssg3[] = "Please enter a nickname!";
   mvwprintw(Login_Window,3,((width-strlen(mssg1))/2),"%s",mssg1);
   mvwprintw(Login_Window,5,((width-strlen(mssg2)-3)/2), "%s%d/%d",mssg2, num_users, MAX_USERS);
+
   // Take an input nickname from the user and confirm it
-  int join_success = 0;
-  while(!join_success)
+  while(ch != 121 ) // Allow the user to keep attempting names until they confirm an untaken name.
   {
-    while(ch != 121) // On 'y' and input_name is not empty, break loop.
+    mvwprintw(Login_Window,7, 3, "%s",mssg3);
+    wrefresh(Login_Window);
+    wmove(Login_Window, 8, 3);
+    wclrtoeol(Login_Window);
+    echo();
+    input_name[0] = '\0';
+    // Read in the input name, which cannot be empty.
+    while(input_name[0]=='\0')
     {
-      mvwprintw(Login_Window,7, 3, "%s",mssg3);
-      wrefresh(Login_Window);
-      wmove(Login_Window, 8, 3);
-      wclrtoeol(Login_Window);
-      echo();
-      input_name[0] = '\0';
-      while(input_name[0]=='\0')
-      {
-        mvwgetstr(Login_Window, 8, 3, input_name);
-      }
-      input_name[NICKNAME_CHARS] = '\0'; // Truncates the string. // TODO - Code for when username is taken.
+      mvwgetstr(Login_Window, 8, 3, input_name);
+    }
+    input_name[NICKNAME_CHARS] = '\0'; // Truncates the string to the max num of characters.
+    // TODO - Set if statement false for when username is taken.
+    if(1)
+    {
       wmove(Login_Window, 9, 3);
       wclrtobot(Login_Window);
       box(Login_Window, 0, 0);
@@ -52,26 +55,26 @@ void Client_Window::display_Login()
       noecho();
       wrefresh(Login_Window);
       ch = wgetch(Login_Window);
-      //wprintw(Login_Window, "%d read from the keyboard, hopefully %c will be taken.", ch, ch);
     }
-    mvwprintw(Login_Window, 10, 3,"Welcome, \"%s\". Attempting to join server..", input_name);
-    wrefresh(Login_Window);
-    /*
-    TODO - Send the nickname to the server and check if it is taken. If it isnt, break loop.
-    TODO - If the user enters q at any time while waiting to join, quit the program
-    */
-    join_success = 1; // Temporary
+    else
+    {
+      mvwprintw(Login_Window, 9, 3, "Username is taken. Please try again!");
+      wrefresh(Login_Window);
+    }
   }
-  // The user has successfully joined, free up the screen.
-  wborder(Login_Window,' ',' ',' ',' ',' ',' ',' ',' ');
+  mvwprintw(Login_Window, 10, 3,"Welcome, \"%s\". Attempting to join server..", input_name);
   wrefresh(Login_Window);
+
+  // The user has successfully joined with a unique username, free up the screen.
   delwin(Login_Window);
   endwin();
   strcpy(username, input_name); // Save the user's accepted nickname in the class attribute.
 }
+
+// This screen allows you to navigate through a chatroom and it's features.
 void Client_Window::display_Chatroom()
 {
-  // Initialize the display_Chatroom screen
+  // Initialize the display_Chatroom screen and format it.
   initscr();
   printf("<dev> Display Chatroom called\n");
   mvprintw(0,0, "F1 : Switch to Chatroom Select\n"); // TODO - Add the chatroom name.
@@ -82,12 +85,18 @@ void Client_Window::display_Chatroom()
   WINDOW* Chatroom_Window;
   Chatroom_Window = newwin(17,75, 3, 0);
   box(Chatroom_Window, 0,0);
-  int chat_offset = 0; // Allow the user to scroll through chat.
-  int x; // Used as a storage space for now.
+  int chat_offset = 0; // Used to allow the user to scroll through chat.
+  int x;
   std::vector<char*> messageList; // Temporary - used to test chatroom messages.
 
+  // Run through what the chatroom window does until you switch to Chatroom Selection window
   while(ch != 80) //  On F1 pressed.
   {
+    // Clear the subwindow
+    werase(Chatroom_Window);
+    box(Chatroom_Window, 0, 0);
+    wrefresh(Chatroom_Window);
+    // Clear the input line (below the subwindow)
     move(20,0);
     clrtobot();
     noecho();
@@ -112,7 +121,6 @@ void Client_Window::display_Chatroom()
             clrtoeol();
             refresh();
             mvgetstr(20, 3, input_mssg);
-            //mvwprintw(Chatroom_Window, 1,1,"<dev> %s: %s", username, input_mssg);
             send_message_to_chat(input_mssg); // Sends message to Chatroom for handling.
             messageList.push_back(input_mssg); // Temporary, for experimenting.
             break;
@@ -244,9 +252,6 @@ void Client_Window::display_Chatroom()
       tab = tab % 4;
       chat_offset = 0;
     }
-    werase(Chatroom_Window);
-    box(Chatroom_Window, 0, 0);
-    wrefresh(Chatroom_Window);
   }
   // Switching to Chatroom Select, free the screen.
   werase(Chatroom_Window);
@@ -264,14 +269,16 @@ void Client_Window::display_Chatroom()
     messageList.pop_back();
   }
 }
-void Client_Window::display_ChatroomSelect()
+
+// Displays the Chatroom Select window, returns false if the user signed out.
+int Client_Window::display_ChatroomSelect()
 {
-  // Initialize the chatroom select screen
+  // Initialize the chatroom select screen and format it.
   printf("<dev> display ChatroomSelect called.\n");
   initscr();
   mvprintw(0,0, "F1 : Switch to Chatroom Window");
   mvprintw(1,0, "UP and DOWN to select a chatroom");
-  mvprintw(20,0, " r - Signout | e - join chatroom | q - delete chatroom");
+  mvprintw(20,0, " r - Signout | e - join chatroom | q - delete chatroom | c - create room");
   int ch = 0;
   int selection_offset = 0;
   WINDOW* Select_Window;
@@ -281,6 +288,7 @@ void Client_Window::display_ChatroomSelect()
   refresh();
   int x;
 
+  // Allow the chatroom select window to run until the user switches to a chatroom window.
   while(ch != 80) // On F1 pressed, switch back to chatroom window.
   {
     refresh_chatselect(Select_Window);
@@ -292,18 +300,43 @@ void Client_Window::display_ChatroomSelect()
         send_chatroom_delete();
         printf("Exiting by signout\n");
         // TODO - Sign the user out of the Server.
-        exit(0);
+        return 0;
         break;
       case 101: // on e pressed, switch to the selected chatroom
         break;
       case 113: // On q pressed, delete the selected chatroom IF it is empty.
+        break;
+      case 99: // On c pressed, attempt to create a new chatroom
+        move(21,0);
+        char input_name[100];
+        printw("New chat name: \n");
+        echo();
+        input_name[0] = '\0';
+        while(input_name[0] == '\0')
+        {
+          getstr(input_name);
+          move(22,0);
+          clrtoeol();
+        }
+        move(21,0);
+        clrtoeol();
+        noecho();
+        // TODO - Set this if statement to false when the given name is taken.
+        if(0)
+        {
+
+        }
+        else
+        {
+          printw("Sorry, '%s' is taken.", input_name);
+        }
         break;
       case 65: // on up arrow pressed
         x = 1; // Temp, X should be set to the # of chatrooms on the server.
         selection_offset ++;
         selection_offset = selection_offset % x;
         break;
-      case 66:
+      case 66: // on down arrow pressed
         selection_offset --;
         if(selection_offset < 0)
           selection_offset = 0;
@@ -315,6 +348,7 @@ void Client_Window::display_ChatroomSelect()
   // Switching to the Chatroom window, free the screen.
   delwin(Select_Window);
   endwin();
+  return 1;
 }
 
 void Client_Window::add_blacklist()
@@ -383,9 +417,10 @@ void Client_Window::GUI_main()
   keypad(stdscr, TRUE);                            // Allows GUI to use function keys, ect.
   display_Login();                                 // Begin prompting for a nickname and join the server.
   // TODO - set current_chatroom to Lobby chatroom and current_server to Server. May need to pass in as parameters.
-  while(1)                                         // Allows the user to alternate between these two windows
+  int x = 1;
+  while(x)                                         // Allows the user to alternate between these two windows
   {
     display_Chatroom();                          // Start displaying the SuperChat Lobby.
-    display_ChatroomSelect();                    // Allows the user to change lobby, ends the program when they sign out.
+    x = display_ChatroomSelect();                    // Allows the user to change lobby, ends the program when they sign out.
   }
 }

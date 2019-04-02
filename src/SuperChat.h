@@ -17,9 +17,12 @@ class Client_Window
   char* username;
  public:
   void GUI_main(); // The handler for the GUI thread
+  void refresh_x(); // Tells the GUI to refresh whatever window is displaying.
+
+private:
   //void set_chatroom(Chatroom* room);
   void display_Login(); // Displays the login screen
-  void display_ChatroomSelect();
+  int display_ChatroomSelect();
   void display_Chatroom();
 
   void add_blacklist(); // Opens Superchat~ and adds an entry
