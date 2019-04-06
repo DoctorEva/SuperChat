@@ -5,7 +5,34 @@
 #include <vector>
 #include <iostream>
 
+#include <string>
+#include <cstring>
+#include <fstream>
 #include "SuperChat.h"
+
+// Reads in a file and returns it's contents in a vector.
+std::vector<std::string> read_file(std::string filename)
+{
+  std::vector<std::string> all;
+  std::ifstream input;
+  std::string line;
+  input.open(filename);
+
+  if(!input.is_open())
+    {
+      std::cout<<"File failed to load"<<std::endl;
+      exit(1);
+    }
+  while(!input.eof())
+    {
+      //input>>line;
+      std::getline(input,line);
+      all.push_back(line);
+    }
+  all.pop_back();
+  input.close();
+  return all;
+}
 
 // Display an initial prompt to the user, asking them to enter a nickname.
 void Client_Window::display_Login()
@@ -45,8 +72,7 @@ void Client_Window::display_Login()
       mvwgetstr(Login_Window, 8, 3, input_name);
     }
     input_name[NICKNAME_CHARS] = '\0'; // Truncates the string to the max num of characters.
-    // TODO - Set if statement false for when username is taken.
-    if(1)
+    if(send_login_request(input_name))
     {
       wmove(Login_Window, 9, 3);
       wclrtobot(Login_Window);
@@ -206,10 +232,11 @@ void Client_Window::display_Chatroom()
         mvprintw(2,0, "Chat | Users | Shared Files | BLACKLIST");
         mvprintw(20, 0, " e - unban selected");
         refresh();
-        x = 0; // Temp, should be set to the current number of names on blacklist.
+        std::vector<std::string> entries = read_file("~SuperChat");
+        x = entries.size();
         if(x>0)
         {
-          refresh_blacklist_tab(Chatroom_Window, chat_offset);
+          refresh_blacklist_tab(Chatroom_Window, chat_offset, entries);
         }
         else
         {
@@ -222,14 +249,14 @@ void Client_Window::display_Chatroom()
           switch(ch)
           {
             case 101: // on e
-              // TODO - remove the selected name from the blacklist.
+              remove_blacklist(entries[chat_offset]);
+              chat_offset = 0;
               break;
-            case 65: // on up arrow
+            case 66: // on down arrow
               chat_offset ++;
-              x = 3; // Temp, should be set to the current number of names on blacklist.
               chat_offset = chat_offset % x;
               break;
-            case 66: // On Down arrow
+            case 65: // On up arrow
               chat_offset = 0;
               break;
           }
@@ -321,8 +348,7 @@ int Client_Window::display_ChatroomSelect()
         move(21,0);
         clrtoeol();
         noecho();
-        // TODO - Set this if statement to false when the given name is taken.
-        if(0)
+        if(send_chatroom_create(input_name))
         {
 
         }
@@ -351,13 +377,31 @@ int Client_Window::display_ChatroomSelect()
   return 1;
 }
 
-void Client_Window::add_blacklist()
+void Client_Window::add_blacklist(char* banning_target)
 {
-
+  FILE *saves = fopen("~SuperChat", "a");
+  if(saves)
+  {
+    fwrite(banning_target, 1, strlen(banning_target), saves);
+    fputc('\n', saves);
+    fclose(saves);
+  }
 }
-void Client_Window::remove_blacklist()
+void Client_Window::remove_blacklist(std::string removal_target)
 {
-
+  std::vector<std::string> entries = read_file("~SuperChat");
+  FILE* output = fopen("~SuperChat", "w");
+  fclose(output);
+  int i;
+  for(i=0; i<entries.size(); i++)
+  {
+    if(entries[i].compare(removal_target))
+    {
+      char* addition = new char [(entries[i]+"\n").length()+1];
+      std::strcpy(addition, entries[i].c_str());
+      add_blacklist(addition);
+    }
+  }
 }
 void Client_Window::send_message_to_chat(char* message)
 {
@@ -382,9 +426,17 @@ void Client_Window::refresh_chatselect(WINDOW* chatselectwindow, int offset)
 
   wrefresh(chatselectwindow);
 }
-void Client_Window::refresh_blacklist_tab(WINDOW* chatwindow, int offset)
+void Client_Window::refresh_blacklist_tab(WINDOW* chatwindow, int offset, std::vector<std::string> entries)
 {
-
+  int i;
+  for(i=0; i<entries.size(); i++)
+  {
+    wmove(chatwindow, i+1, 0);
+    wprintw(chatwindow,"-- %s\n", entries[i].c_str());
+  }
+  box(chatwindow, 0, 0);
+  wmove(chatwindow, offset+1, 0);
+  wrefresh(chatwindow);
 }
 void Client_Window::refresh_list_tab(WINDOW* chatwindow, int offset)
 {
@@ -393,6 +445,13 @@ void Client_Window::refresh_list_tab(WINDOW* chatwindow, int offset)
 void Client_Window::refresh_file_tab(WINDOW* chatwindow, int offset)
 {
 
+}
+
+int Client_Window::send_login_request(char* name)
+{
+  int success = 1;
+
+  return success;
 }
 void Client_Window::send_download_request()
 {
@@ -410,9 +469,17 @@ void Client_Window::send_chatroom_delete()
 {
 
 }
-
-void Client_Window::GUI_main()
+int Client_Window::send_chatroom_create(char* name)
 {
+  int success = 0;
+
+  return success;
+}
+
+void Client_Window::GUI_main(/*Chatroom* Lobby, Server* server */)
+{
+  //S = server;
+  //current_chatroom = Lobby;
   username = (char*) malloc(NICKNAME_CHARS*sizeof(char));      // Allocating memory for the username.
   keypad(stdscr, TRUE);                            // Allows GUI to use function keys, ect.
   display_Login();                                 // Begin prompting for a nickname and join the server.
