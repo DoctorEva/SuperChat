@@ -16,4 +16,4 @@ chat_server.o: chat_server.cpp chat_message.hpp
 	$(CXX) $(CPPFLAGS) -c chat_server.cpp
 
 clean:
-	-rm chat_client chat_server chat_client.o chat_server.o
+	-rm *.o

@@ -63,11 +63,22 @@ public:
     for (auto participant: participants_)
       participant->deliver(msg);
   }
+   
+  char* getName()
+  {
+    return chatroomName;
+  }
+  
+  void setName(char* chatRoomName)
+  {
+	chatroomName = chatRoomName;
+  }
 
 private:
   std::set<chat_participant_ptr> participants_;
   enum { max_recent_msgs = 100 };
   chat_message_queue recent_msgs_;
+  char *chatroomName;
 };
 
 //----------------------------------------------------------------------
