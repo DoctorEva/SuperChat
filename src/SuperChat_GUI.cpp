@@ -407,15 +407,17 @@ void Client_Window::send_message_to_chat(char* message)
 {
 
 }
-void Client_Window::refresh_chat(WINDOW* chatwindow, int offset, std::vector<char*> messages)
+void Client_Window::refresh_chat(WINDOW* chatwindow, int offset)
 {
   int pos_y = 1;
   int pos_x = 1;
   int i;
 
+  std::vector<std::string> messages = read_file(current_chatroom.getname());
+
   for(i=offset; i<messages.size() && pos_y < 15; i++)
   {
-    mvwprintw(chatwindow, pos_y, 1, "%s : %s\n", username, messages[messages.size() - i - 1]);
+    mvwprintw(chatwindow, pos_y, 1, "%s : %s\n", username, messages[messages.size() - i - 1].c_str());
     getyx(chatwindow, pos_y, pos_x);
   }
   box(chatwindow,0,0);
