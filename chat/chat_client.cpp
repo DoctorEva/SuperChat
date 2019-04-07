@@ -89,6 +89,7 @@ private:
         {
           if (!ec)
           {
+	    std::cout<<"This is a message being sent"<< std::endl; //Remove
             std::cout.write(read_msg_.body(), read_msg_.body_length());
             std::cout << "\n";
             do_read_header();

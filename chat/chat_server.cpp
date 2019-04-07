@@ -43,6 +43,7 @@ public:
   void join(chat_participant_ptr participant)
   {
     participants_.insert(participant);
+    std::cout<<"A user has joined!"<<std::endl; //Remove
     for (auto msg: recent_msgs_)
       participant->deliver(msg);
   }
@@ -50,6 +51,7 @@ public:
   void leave(chat_participant_ptr participant)
   {
     participants_.erase(participant);
+    std::cout<<"User has left :("<<std::endl; //Remove
   }
 
   void deliver(const chat_message& msg)
@@ -125,6 +127,7 @@ private:
         {
           if (!ec)
           {
+	    std::cout<<"Server interacting with client."<<std::endl; //Remove
             room_.deliver(read_msg_);
             do_read_header();
           }
