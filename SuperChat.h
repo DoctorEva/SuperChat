@@ -1,22 +1,22 @@
 #ifndef SUPERCHAT_H
 #define SUPERCHAT_H
 
-#include <ncurses.h>
 #include <stdlib.h>
 #include <string.h>
 #include <iostream>
 #include <vector>
+#include "chat_client_cheader.hpp"
+#include <ncurses.h>
 
 #define MAX_USERS 50
 #define NICKNAME_CHARS 20 // To be changed. // Character limit of input for nicknames
 
 class Client_Window
 {
-  //Chatroom* current_chatroom; // TODO - point to Chatroom class
-  //Server* S // TODO - point to the Server class
+  chat_client* c;
   char* username;
  public:
-  void GUI_main(); // The handler for the GUI thread
+  void GUI_main(chat_client* Lobby); // The handler for the GUI thread
   void refresh_x(); // Tells the GUI to refresh whatever window is displaying.
 
 private:
@@ -27,7 +27,7 @@ private:
 
   void add_blacklist(char* banning_target); // Opens Superchat~ and adds an entry
   void remove_blacklist(std::string removal_target);// Opens ~SuperChat and deletes a specific entry
-  void refresh_chat(WINDOW* chatwindow, int offset, std::vector<char*> messages);
+  void refresh_chat(WINDOW* chatwindow, int offset);
   void refresh_chatselect(WINDOW* chatselectwindow, int offset = 0);
   void refresh_blacklist_tab(WINDOW* chatwindow, int offset, std::vector<std::string> entries);
   void refresh_list_tab(WINDOW* chatwindow, int offset = 0);

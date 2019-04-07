@@ -1,6 +1,5 @@
 // Implementations for SuperChat GUI, using ncurses.
 #include <stdlib.h>
-#include <ncurses.h>
 #include <string.h>
 #include <vector>
 #include <iostream>
@@ -9,6 +8,8 @@
 #include <cstring>
 #include <fstream>
 #include "SuperChat.h"
+#include "chat_client_cheader.hpp"
+#include <ncurses.h>
 
 // Reads in a file and returns it's contents in a vector.
 std::vector<std::string> read_file(std::string filename)
@@ -21,7 +22,7 @@ std::vector<std::string> read_file(std::string filename)
   if(!input.is_open())
     {
       std::cout<<"File failed to load"<<std::endl;
-      exit(1);
+      //exit(1);
     }
   while(!input.eof())
     {
@@ -135,7 +136,7 @@ void Client_Window::display_Chatroom()
         mvprintw(2,0, "CHAT | Users | Shared Files | Blacklist");
         mvprintw(20,0, ">> Press Enter to begin typing");
         refresh();
-        refresh_chat(Chatroom_Window, chat_offset, messageList);
+        refresh_chat(Chatroom_Window, chat_offset);
         ch = getch();
         switch(ch)
         {
@@ -403,17 +404,13 @@ void Client_Window::remove_blacklist(std::string removal_target)
     }
   }
 }
-void Client_Window::send_message_to_chat(char* message)
-{
-
-}
 void Client_Window::refresh_chat(WINDOW* chatwindow, int offset)
 {
   int pos_y = 1;
   int pos_x = 1;
   int i;
 
-  std::vector<std::string> messages = read_file(current_chatroom.getname());
+  std::vector<std::string> messages = read_file("Lobby");
 
   for(i=offset; i<messages.size() && pos_y < 15; i++)
   {
@@ -477,11 +474,19 @@ int Client_Window::send_chatroom_create(char* name)
 
   return success;
 }
+void Client_Window::send_message_to_chat(char* input)
+{
+  chat_message msg;
+  msg.body_length(strlen(input));
+  memcpy(msg.body(), input, msg.body_length());
+  msg.encode_header();
+  c->write(msg);
+}
 
-void Client_Window::GUI_main(/*Chatroom* Lobby, Server* server */)
+void Client_Window::GUI_main(chat_client* Lobby)
 {
   //S = server;
-  //current_chatroom = Lobby;
+  c = Lobby;
   username = (char*) malloc(NICKNAME_CHARS*sizeof(char));      // Allocating memory for the username.
   keypad(stdscr, TRUE);                            // Allows GUI to use function keys, ect.
   display_Login();                                 // Begin prompting for a nickname and join the server.
