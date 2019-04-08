@@ -34,7 +34,7 @@ private:
   void refresh_file_tab(WINDOW* chatwindow, int offset = 0);
 
   int send_login_request(char* name);
-  void send_message_to_chat(char* message); // sends a message to a chatroom. Depends on Chatroom.
+  void send_message_to_chat(char* input, WINDOW* chatWindow,int offset); // sends a message to a chatroom. Depends on Chatroom.
   void send_download_request(); // calls Download from the chatroom. Depends on Chatroom
   void send_upload_request(std::string filename); // Sends a filename to Chatroom for upload. Depends on Chatroom
   void send_signoff_to_server(); // Exit the server and ends the program. Depends on Server.

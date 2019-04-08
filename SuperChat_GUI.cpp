@@ -115,7 +115,7 @@ void Client_Window::display_Chatroom()
   int chat_offset = 0; // Used to allow the user to scroll through chat.
   int x;
   std::vector<char*> messageList; // Temporary - used to test chatroom messages.
-
+  wrefresh(Chatroom_Window); //Delete if weird output
   // Run through what the chatroom window does until you switch to Chatroom Selection window
   while(ch != 80) //  On F1 pressed.
   {
@@ -148,7 +148,8 @@ void Client_Window::display_Chatroom()
             clrtoeol();
             refresh();
             mvgetstr(20, 3, input_mssg);
-            send_message_to_chat(input_mssg); // Sends message to Chatroom for handling.
+            send_message_to_chat(input_mssg, Chatroom_Window/*remove if scuffed*/, chat_offset); // Sends message to Chatroom for handling.
+	    refresh_chat(Chatroom_Window, chat_offset);
             messageList.push_back(input_mssg); // Temporary, for experimenting.
             break;
           case 65: // On up arrow
@@ -474,13 +475,13 @@ int Client_Window::send_chatroom_create(char* name)
 
   return success;
 }
-void Client_Window::send_message_to_chat(char* input)
+void Client_Window::send_message_to_chat(char* input, WINDOW* chatWindow,int offset)
 {
   chat_message msg;
   msg.body_length(strlen(input));
   memcpy(msg.body(), input, msg.body_length());
   msg.encode_header();
-  c->write(msg);
+  c->write(msg,"Lobby", chatWindow,username, offset);
 }
 
 void Client_Window::GUI_main(chat_client* Lobby)
