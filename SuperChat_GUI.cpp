@@ -553,12 +553,22 @@ int Client_Window::send_login_request(char* name)
 void Client_Window::send_download_request(char* filename)
 {
   //TODO - Find the filename on the server, read that file and place it in the user's current working directory.
+
 }
 int Client_Window::send_upload_request(char* filename)
 {
   int success = 0;
-  //TODO - Read the file from the user's current working directory, save it on the server.
-  // Return 1 if success, or 0 if failed.
+  FILE* input_file;
+  input_file = fopen(filename, "r");
+  if(input_file)
+  {
+    // Input file successfully opened. Open the file to write on the server directory. Copy contents of inout file onto server file.
+    // TODO
+  }
+  else
+  {
+    return 0;
+  }
   return success;
 }
 void Client_Window::send_signoff_to_server()
