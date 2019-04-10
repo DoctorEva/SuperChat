@@ -133,7 +133,8 @@ void Client_Window::display_Chatroom()
     refresh();
     //mvwprintw(Chatroom_Window,1,1, "<dev> This is a new window, %s! %d  %d %d ", username, ch, tab, chat_offset);
     wrefresh(Chatroom_Window);
-
+    int wait_time = 500;
+    timeout(wait_time); // Update screen after .5 secs without input
     switch(tab)
     {
       case CHAT:
@@ -146,6 +147,7 @@ void Client_Window::display_Chatroom()
         {
           case 10: // On enter
             echo();
+            timeout(-1);
             char input_mssg[100];
             move(20,3);
             clrtoeol();
@@ -155,6 +157,7 @@ void Client_Window::display_Chatroom()
             break;
           case 101: // On e, set a new secret_msg_code
             echo();
+            timeout(-1);
             char input_code[20];
             move(20,3);
             clrtoeol();
@@ -238,6 +241,7 @@ void Client_Window::display_Chatroom()
               char input_file[100];
               printw("Filename to upload: \n");
               echo();
+              timeout(-1);
               input_file[0] = '\0';
               while(input_file[0] == '\0')
               {
@@ -323,6 +327,7 @@ void Client_Window::display_Chatroom()
     }
   }
   // Switching to Chatroom Select, free the screen.
+  timeout(-1);
   werase(Chatroom_Window);
   wrefresh(Chatroom_Window);
   erase();
@@ -348,14 +353,16 @@ int Client_Window::display_ChatroomSelect()
   wrefresh(Select_Window);
   refresh();
   int x;
+  std::vector<std::string> temp; // TEMP
+  temp.push_back("Lobby"); // TEMP
+  temp.push_back("ExampleRoom"); // TEMP
 
   // Allow the chatroom select window to run until the user switches to a chatroom window.
   while(ch != 80) // On F1 pressed, switch back to chatroom window.
   {
-    std::vector<std::string> temp; // TEMP
-    temp.push_back("Lobby"); // TEMP
-    temp.push_back("ExampleRoom"); // TEMP
     refresh_chatselect(Select_Window, selection_offset, temp);
+    int wait_time = 500;
+    timeout(wait_time);
     switch(ch)
     {
       case 114: // on r pressed, signout and exit the program
@@ -364,7 +371,6 @@ int Client_Window::display_ChatroomSelect()
         send_signoff_to_server();
         printf("Exiting by signout\n");
         return 0;
-        break;
       case 101: // TODO - on e pressed, switch to the selected chatroom
         break;
       case 113: // On q pressed, delete the selected chatroom IF it is empty.
@@ -376,12 +382,14 @@ int Client_Window::display_ChatroomSelect()
         printw("New chat name: \n");
         echo();
         input_name[0] = '\0';
+        timeout(-1);
         while(input_name[0] == '\0')
         {
           getstr(input_name);
           move(22,0);
           clrtoeol();
         }
+        timeout(wait_time);
         move(21,0);
         clrtoeol();
         noecho();
