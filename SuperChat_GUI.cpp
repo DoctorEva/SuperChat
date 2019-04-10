@@ -22,6 +22,7 @@ std::vector<std::string> read_file(std::string filename)
   if(!input.is_open())
     {
       std::cout<<"File failed to load"<<std::endl;
+      return all;
       //exit(1);
     }
   while(!input.eof())
@@ -137,7 +138,7 @@ void Client_Window::display_Chatroom()
     {
       case CHAT:
         mvprintw(2,0, "CHAT | Users | Shared Files | Blacklist");
-        mvprintw(20,0, ">> Press Enter to begin typing");
+        mvprintw(20,0, ">> Press Enter to begin typing.| e - secret code");
         refresh();
         refresh_chat(Chatroom_Window, chat_offset);
         ch = getch();
@@ -145,13 +146,21 @@ void Client_Window::display_Chatroom()
         {
           case 10: // On enter
             echo();
-            char* input_mssg;
-            input_mssg = (char*)malloc(sizeof(char)*100); // Tempoary, memory allocation handled by others.
+            char input_mssg[100];
             move(20,3);
             clrtoeol();
             refresh();
             mvgetstr(20, 3, input_mssg);
             send_message_to_chat(input_mssg); // Sends message to Chatroom for handling.
+            break;
+          case 101: // On e, set a new secret_msg_code
+            echo();
+            char input_code[20];
+            move(20,3);
+            clrtoeol();
+            refresh();
+            mvgetstr(20, 3, input_code);
+            strcpy(secret_msg_code, input_code);
             break;
           case 65: // On up arrow
             //Increment Chat offset to let the user scroll up
@@ -183,10 +192,12 @@ void Client_Window::display_Chatroom()
 
         if(x > 0)
         {
+          char* selected_str;
           switch(ch)
           {
             case 101: // On e
-              //TODO - add the selected name to the blacklist.
+              selected_str = strdup(temp[chat_offset].c_str());
+              add_blacklist(selected_str);
               break;
             case 66: // On Dowm Arrow
               chat_offset ++;
@@ -200,7 +211,7 @@ void Client_Window::display_Chatroom()
         break;
       case SHARED:
         mvprintw(2,0, "Chat | Users | SHARED FILES | Blacklist");
-        mvprintw(20, 0, " e - download selected");
+        mvprintw(20, 0, " e - download selected | c - upload a file");
         refresh();
         x = temp.size(); // Temp, should be set to the current number of files in the chatroom
         if(x>0)
@@ -215,34 +226,38 @@ void Client_Window::display_Chatroom()
         ch = getch();
         if(x>0)
         {
+          char* selected_str;
           switch(ch)
           {
             case 101: // on e
-              // TODO - Send the required info to the server to copy the file selected.
+              selected_str = strdup(temp[chat_offset].c_str());
+              send_download_request(selected_str);
               break;
             case 99: // On c pressed, attempt to upload a new file.
               move(21,0);
-              char input_name[100];
-              printw("New chat name: \n");
+              char input_file[100];
+              printw("Filename to upload: \n");
               echo();
-              input_name[0] = '\0';
-              while(input_name[0] == '\0')
+              input_file[0] = '\0';
+              while(input_file[0] == '\0')
               {
-                getstr(input_name);
+                getstr(input_file);
                 move(22,0);
                 clrtoeol();
               }
-              move(21,0);
+              move(22,0);
               clrtoeol();
               noecho();
-              if(send_upload_request(input_name))
+              if(send_upload_request(input_file))
               {
-
+                printw("Successfully uploaded %s", input_file);
               }
               else
               {
-                printw("Sorry, '%s' is taken.", input_name);
+                printw("Sorry, a file named '%s' is already on the server.", input_file);
               }
+              refresh();
+              sleep(1);
               break;
             case 66: // on Down arrow
               chat_offset ++;
@@ -350,9 +365,10 @@ int Client_Window::display_ChatroomSelect()
         printf("Exiting by signout\n");
         return 0;
         break;
-      case 101: // on e pressed, switch to the selected chatroom
+      case 101: // TODO - on e pressed, switch to the selected chatroom
         break;
       case 113: // On q pressed, delete the selected chatroom IF it is empty.
+        send_chatroom_delete(selection_offset);
         break;
       case 99: // On c pressed, attempt to create a new chatroom
         move(21,0);
@@ -371,7 +387,7 @@ int Client_Window::display_ChatroomSelect()
         noecho();
         if(send_chatroom_create(input_name))
         {
-
+          printw("Successfully created %s", input_name);
         }
         else
         {
@@ -430,12 +446,41 @@ void Client_Window::refresh_chat(WINDOW* chatwindow, int offset)
   int pos_x = 1;
   int i;
 
-  std::vector<std::string> messages = read_file("Lobby");
-
+  std::vector<std::string> messages = read_file("Lobby"); // TEMP
+  std::vector<std::string> blacklist = read_file("~SuperChat");
   for(i=offset; i<messages.size() && pos_y < 15; i++)
   {
-    mvwprintw(chatwindow, pos_y, 1, "%s : %s\n", username, messages[messages.size() - i - 1].c_str());
-    getyx(chatwindow, pos_y, pos_x);
+    //Check if user is on the blacklist.
+    int y;
+    char* mssg = strdup(messages[messages.size() - i - 1].c_str());
+    char* divider = strchr(mssg, ':');
+    char name[strlen(mssg) - strlen(divider) + 1];
+    memset(name, '\0', strlen(mssg) - strlen(divider) + 1);
+    memcpy(name, mssg, strlen(mssg) - strlen(divider));
+
+    for(y=0; y<blacklist.size(); y++)
+    {
+      if(!strcmp(name, blacklist[y].c_str()))
+      {
+        break;
+      }
+    }
+    if(y == blacklist.size())
+    {
+      char* divider = strchr(mssg, ':');
+      if(divider[2] == '/') // Check for message secret
+      {
+        char buffer[strlen(divider)+1];
+        strcpy(buffer, divider+3);
+        char* token = strtok(buffer, " ");
+        if(strcmp(secret_msg_code, token))
+        {
+          memset(mssg, '#', strlen(mssg));
+        }
+      }
+      mvwprintw(chatwindow, pos_y, 1, "%s\n", mssg);
+      getyx(chatwindow, pos_y, pos_x);
+    }
   }
   box(chatwindow,0,0);
   wrefresh(chatwindow);
@@ -533,12 +578,12 @@ void Client_Window::send_message_to_chat(char* input)
 
 void Client_Window::GUI_main(chat_client* Lobby)
 {
-  //S = server;
-  c = Lobby;
   username = (char*) malloc(NICKNAME_CHARS*sizeof(char));      // Allocating memory for the username.
   keypad(stdscr, TRUE);                            // Allows GUI to use function keys, ect.
   display_Login();                                 // Begin prompting for a nickname and join the server.
-  // TODO - set current_chatroom to Lobby chatroom and current_server to Server. May need to pass in as parameters.
+  c = Lobby;
+  secret_msg_code = (char*) malloc(20*sizeof(char));
+  memset(secret_msg_code, '\0', 20);
   int x = 1;
   while(x)                                         // Allows the user to alternate between these two windows
   {

@@ -15,6 +15,7 @@ class Client_Window
 {
   chat_client* c;
   char* username;
+  char* secret_msg_code;
  public:
   void GUI_main(chat_client* Lobby); // The handler for the GUI thread
   void refresh_x(); // Tells the GUI to refresh whatever window is displaying.
