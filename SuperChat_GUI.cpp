@@ -153,7 +153,7 @@ void Client_Window::display_Chatroom()
             clrtoeol();
             refresh();
             mvgetstr(20, 3, input_mssg);
-            send_message_to_chat(input_mssg); // Sends message to Chatroom for handling.
+            send_message_to_chat(input_mssg); // Sends message to Chatroom for handling
             break;
           case 101: // On e, set a new secret_msg_code
             echo();
@@ -591,7 +591,7 @@ void Client_Window::send_message_to_chat(char* input)
   msg.body_length(strlen(input));
   memcpy(msg.body(), input, msg.body_length());
   msg.encode_header();
-  c->write(msg);
+  c->write(msg, "Lobby", username);
 }
 
 void Client_Window::GUI_main(chat_client* Lobby)

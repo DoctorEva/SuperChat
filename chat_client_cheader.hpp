@@ -17,6 +17,7 @@
 #include <thread>
 #include <string.h>
 #include <stdio.h>
+#include <fstream>
 #include "asio.hpp"
 #include "chat_message.hpp"
 #include <ncurses.h>
@@ -36,13 +37,20 @@ public:
     do_connect(endpoints);
   }
 
-  void write(const chat_message& msg)
+  void write(const chat_message& msg, std::string fileName, char* userName)
   {
+    filename = fileName;
+    username = userName;
     asio::post(io_context_,
         [this, msg]()
         {
           bool write_in_progress = !write_msgs_.empty();
           write_msgs_.push_back(msg);
+            std::ofstream fout;
+            std::string line;
+	    fout.open(filename, std::ios::app);
+	    fout<<username<< ": "<<read_msg_.body()<<"\n"; //print message to file.
+	    fout.close();
           if (!write_in_progress)
           {
             do_write();
@@ -93,9 +101,6 @@ private:
         {
           if (!ec)
           {
-	    //std::cout<<"This is a message being sent"<< std::endl; //Remove
-            std::cout.write(read_msg_.body(), read_msg_.body_length());
-            std::cout << "\n\r";
             do_read_header();
           }
           else
@@ -133,6 +138,8 @@ private:
   tcp::socket socket_;
   chat_message read_msg_;
   chat_message_queue write_msgs_;
+  std::string filename;
+  char* username;
 };
 
 #endif // CHAT_CLIENT_HPP
