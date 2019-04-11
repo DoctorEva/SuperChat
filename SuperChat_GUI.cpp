@@ -39,6 +39,11 @@ std::vector<std::string> read_file(std::string filename)
 // Display an initial prompt to the user, asking them to enter a nickname.
 void Client_Window::display_Login()
 {
+
+  //Configure presets
+  chatRooms.push_back("Lobby");
+  numberOfChatrooms++;
+  currentChatroom = chatRooms[0];
   // Formatting the window.
   initscr();
   printf("<dev> Display login Window Called\n");
@@ -353,14 +358,11 @@ int Client_Window::display_ChatroomSelect()
   wrefresh(Select_Window);
   refresh();
   int x;
-  std::vector<std::string> temp; // TEMP
-  temp.push_back("Lobby"); // TEMP
-  temp.push_back("ExampleRoom"); // TEMP
 
   // Allow the chatroom select window to run until the user switches to a chatroom window.
   while(ch != 80) // On F1 pressed, switch back to chatroom window.
   {
-    refresh_chatselect(Select_Window, selection_offset, temp);
+    refresh_chatselect(Select_Window, selection_offset, chatRooms);
     int wait_time = 500;
     timeout(wait_time);
     switch(ch)
@@ -372,6 +374,8 @@ int Client_Window::display_ChatroomSelect()
         printf("Exiting by signout\n");
         return 0;
       case 101: // TODO - on e pressed, switch to the selected chatroom
+        currentChatroom = chatRooms[selection_offset];
+	selection_offset = 0;
         break;
       case 113: // On q pressed, delete the selected chatroom IF it is empty.
         send_chatroom_delete(selection_offset);
@@ -403,7 +407,7 @@ int Client_Window::display_ChatroomSelect()
         }
         break;
       case 66: // on down arrow pressed
-        x = temp.size(); // Temp, X should be set to the # of chatrooms on the server.
+        x = numberOfChatrooms; // Temp, X should be set to the # of chatrooms on the server.
         selection_offset ++;
         selection_offset = selection_offset % x;
         break;
@@ -454,7 +458,7 @@ void Client_Window::refresh_chat(WINDOW* chatwindow, int offset)
   int pos_x = 1;
   int i;
 
-  std::vector<std::string> messages = read_file("Lobby"); // TEMP
+  std::vector<std::string> messages = read_file(currentChatroom); // TEMP
   std::vector<std::string> blacklist = read_file("~SuperChat");
   for(i=offset; i<messages.size() && pos_y < 15; i++)
   {
@@ -582,7 +586,12 @@ void Client_Window::send_chatroom_delete(int index)
 int Client_Window::send_chatroom_create(char* name)
 {
   int success = 0;
-  // TODO - Create a new chatroom with the given name. Return 1 if successful.
+  if(numberOfChatrooms<10)
+  {
+	chatRooms.push_back(name);
+	numberOfChatrooms++;
+	success = 1;
+  }	
   return success;
 }
 void Client_Window::send_message_to_chat(char* input)
@@ -591,7 +600,7 @@ void Client_Window::send_message_to_chat(char* input)
   msg.body_length(strlen(input));
   memcpy(msg.body(), input, msg.body_length()+1);
   msg.encode_header();
-  c->write(msg, "Lobby", username);
+  c->write(msg, currentChatroom, username);
 }
 
 void Client_Window::GUI_main(chat_client* Lobby)
