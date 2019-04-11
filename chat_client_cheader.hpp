@@ -49,7 +49,7 @@ public:
             std::ofstream fout;
             std::string line;
 	    fout.open(filename, std::ios::app);
-	    fout<<username<< ": "<<read_msg_.body()<<"\n"; //print message to file.
+	    fout<<username<< ": "<<msg.body()<<"\n"; //print message to file.
 	    fout.close();
           if (!write_in_progress)
           {
@@ -107,7 +107,7 @@ private:
           {
             socket_.close();
           }
-         
+
         });
   }
 
@@ -143,4 +143,3 @@ private:
 };
 
 #endif // CHAT_CLIENT_HPP
-

@@ -589,7 +589,7 @@ void Client_Window::send_message_to_chat(char* input)
 {
   chat_message msg;
   msg.body_length(strlen(input));
-  memcpy(msg.body(), input, msg.body_length());
+  memcpy(msg.body(), input, msg.body_length()+1);
   msg.encode_header();
   c->write(msg, "Lobby", username);
 }
