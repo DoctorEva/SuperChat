@@ -71,7 +71,7 @@ void Client_Window::display_Login()
     // Read in the input name, which cannot be empty.
     while(input_name[0]=='\0')
     {
-      mvwgetstr(Login_Window, 8, 3, input_name);
+      mvwgetnstr(Login_Window, 8, 3, input_name, NICKNAME_CHARS);
     }
     input_name[NICKNAME_CHARS] = '\0'; // Truncates the string to the max num of characters.
     if(send_login_request(input_name))
@@ -148,11 +148,11 @@ void Client_Window::display_Chatroom()
           case 10: // On enter
             echo();
             timeout(-1);
-            char input_mssg[100];
+            char input_mssg[512];
             move(20,3);
             clrtoeol();
             refresh();
-            mvgetstr(20, 3, input_mssg);
+            mvgetnstr(20, 3, input_mssg, 512);
             send_message_to_chat(input_mssg); // Sends message to Chatroom for handling
             break;
           case 101: // On e, set a new secret_msg_code
@@ -162,7 +162,7 @@ void Client_Window::display_Chatroom()
             move(20,3);
             clrtoeol();
             refresh();
-            mvgetstr(20, 3, input_code);
+            mvgetnstr(20, 3, input_code, 20);
             strcpy(secret_msg_code, input_code);
             break;
           case 65: // On up arrow
@@ -245,7 +245,7 @@ void Client_Window::display_Chatroom()
               input_file[0] = '\0';
               while(input_file[0] == '\0')
               {
-                getstr(input_file);
+                getnstr(input_file, 100);
                 move(22,0);
                 clrtoeol();
               }
@@ -385,7 +385,7 @@ int Client_Window::display_ChatroomSelect()
         timeout(-1);
         while(input_name[0] == '\0')
         {
-          getstr(input_name);
+          getnstr(input_name, 100);
           move(22,0);
           clrtoeol();
         }
