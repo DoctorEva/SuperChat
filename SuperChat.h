@@ -32,7 +32,7 @@ private:
   void add_blacklist(char* banning_target); // Opens Superchat~ and adds an entry
   void remove_blacklist(std::string removal_target);// Opens ~SuperChat and deletes a specific entry
   void refresh_chat(WINDOW* chatwindow, int offset);
-  void refresh_chatselect(WINDOW* chatselectwindow, int offset, std::vector<std::string> chatroom_names);
+  void refresh_chatselect(WINDOW* chatselectwindow, int offset);
   void refresh_blacklist_tab(WINDOW* chatwindow, int offset, std::vector<std::string> entries);
   void refresh_list_tab(WINDOW* chatwindow, int offset, std::vector<std::string> usernames);
   void refresh_file_tab(WINDOW* chatwindow, int offset, std::vector<std::string> server_files);
