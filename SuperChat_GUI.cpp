@@ -173,7 +173,7 @@ void Client_Window::display_Chatroom()
           case 65: // On up arrow
             //Increment Chat offset to let the user scroll up
             chat_offset ++;
-            x = read_file(currentChatroom.c_str()).size();
+            x = read_file(currentChatroom).size();
             if(chat_offset > x)
               chat_offset = x;
             break;
@@ -588,6 +588,10 @@ int Client_Window::send_upload_request(char* filename)
 }
 void Client_Window::send_signoff_to_server()
 {
+  char mssg[100];
+  strcpy(mssg, username);
+  strcat(mssg, "<sys> has left the server.");
+  send_message_to_chat(mssg);
   //TODO - Remove the client from the server.
 }
 void Client_Window::send_chatroom_delete(int index)
@@ -613,6 +617,9 @@ int Client_Window::send_chatroom_create(char* name)
   	fout.open("ChatRooms", std::ios::app);
   	fout<<name<<"\n"; //Add chatrooms to chatroom list
 	fout.close();
+  currentChatroom = name;
+  char mssg[] = "<sys> just created the chat.";
+  send_message_to_chat(mssg);
   }
   return success;
 }
