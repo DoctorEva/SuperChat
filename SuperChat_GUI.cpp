@@ -110,7 +110,7 @@ void Client_Window::display_Chatroom()
   // Initialize the display_Chatroom screen and format it.
   initscr();
   printf("<dev> Display Chatroom called\n");
-  mvprintw(0,0, "F1 : Switch to Chatroom Select\n"); // TODO - Add the chatroom name.
+  mvprintw(0,0, "F1 : Switch to Chatroom Select. You are in %s\n", currentChatroom.c_str());
   mvprintw(1,0, "LEFT or RIGHT to switch tabs. UP and DOWN to scroll.\n");
   int ch = 0; // Character input. This is your "keybinds"
   enum tab{CHAT, USERS, SHARED, BLACKLIST};
@@ -173,7 +173,7 @@ void Client_Window::display_Chatroom()
           case 65: // On up arrow
             //Increment Chat offset to let the user scroll up
             chat_offset ++;
-            x = 50; // Temp, should be set to the current number of messages in the chatroom.
+            x = read_file(currentChatroom.c_str()).size();
             if(chat_offset > x)
               chat_offset = x;
             break;
@@ -348,7 +348,7 @@ int Client_Window::display_ChatroomSelect()
   printf("<dev> display ChatroomSelect called.\n");
   initscr();
   mvprintw(0,0, "F1 : Switch to Chatroom Window");
-  //mvprintw(0,45, "Current Chatroom: %s", currentChatroom.c_str());
+  mvprintw(0,45, "Current Chatroom: %s", currentChatroom.c_str());
   mvprintw(1,0, "UP and DOWN to select a chatroom");
   mvprintw(20,0, " r - Signout | e - join chatroom | q - delete chatroom | c - create room");
   int ch = 0;
@@ -374,11 +374,12 @@ int Client_Window::display_ChatroomSelect()
         send_signoff_to_server();
         printf("Exiting by signout\n");
         return 0;
-      case 101: // TODO - on e pressed, switch to the selected chatroom
+      case 101: // on e pressed, switch to the selected chatroom
         currentChatroom = chatRooms[selection_offset];
-	selection_offset = 0;
-	//mvprintw(0,45, "Current Chatroom: %s", currentChatroom.c_str());
-	//refresh();
+        move(0,45);
+        clrtoeol();
+        mvprintw(0,45, "Current Chatroom: %s", currentChatroom.c_str());
+        refresh();
         break;
       case 113: // On q pressed, delete the selected chatroom IF it is empty.
         send_chatroom_delete(selection_offset);
@@ -415,7 +416,7 @@ int Client_Window::display_ChatroomSelect()
 	refresh_chatselect(Select_Window, selection_offset);
         break;
       case 66: // on down arrow pressed
-        x = numberOfChatrooms; // Temp, X should be set to the # of chatrooms on the server.
+        x = numberOfChatrooms;
         selection_offset ++;
         selection_offset = selection_offset % x;
         break;
@@ -603,7 +604,7 @@ int Client_Window::send_chatroom_create(char* name)
 	  if(chatRooms[i]==name)
 		return 2; //Name taken
 	}
-	
+
 	chatRooms.push_back(name);
 	numberOfChatrooms=chatRooms.size();
 	success = 1;
@@ -611,7 +612,7 @@ int Client_Window::send_chatroom_create(char* name)
   	std::string line;
   	fout.open("ChatRooms", std::ios::app);
   	fout<<name<<"\n"; //Add chatrooms to chatroom list
-	fout.close();	
+	fout.close();
   }
   return success;
 }
