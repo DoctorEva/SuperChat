@@ -22,9 +22,48 @@
 #include "chat_message.hpp"
 #include <ncurses.h>
 
+//These includes are needed for the word search
+#include <vector>
+#include <algorithm>
+#include <string>
+
 using asio::ip::tcp;
 
 typedef std::deque<chat_message> chat_message_queue;
+
+class word_search{
+  public:
+
+  //when declaring the word_search object, the list is "words.txt"
+  word_search(std::string filename){
+    //first read file
+    std::string line;
+    std::ifstream myfile (filename);
+    if (myfile.is_open())
+    {
+      while ( std::getline (myfile,line) )
+      {
+        word_list.push_back(line);
+      }
+      myfile.close();
+    }
+    //sort the list alphebetically
+    std::sort(word_list.begin(), word_list.end());
+    //hopefully then it's ready for a binary search
+  }
+
+  //This function checks the word if it is spelt correctly
+  //true is returned if spelt correctly
+  //else false is returned
+  bool check_word(std::string word_check){
+       return binary_search(word_list.begin(), word_list.end(),word_check);   
+  }
+
+  private:
+  std::vector<std::string> word_list;
+
+  //bool sortname(const std::string &lhs, const std::string &rhs) { return *lhs < *rhs; }
+};
 
 class chat_client
 {
