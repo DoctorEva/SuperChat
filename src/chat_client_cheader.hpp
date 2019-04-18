@@ -48,7 +48,7 @@ public:
           write_msgs_.push_back(msg);
             std::ofstream fout;
             std::string line;
-	    fout.open(filename, std::ios::app);
+	    fout.open("./rooms/"+filename, std::ios::app);
 	    fout<<username<< ": "<<msg.body()<<"\n"; //print message to file.
 	    fout.close();
           if (!write_in_progress)

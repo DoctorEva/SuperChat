@@ -17,7 +17,6 @@ class Client_Window
   char* username;
   char* secret_msg_code;
   std::vector<std::string> chatRooms;
-  int numberOfChatrooms;
   std::string currentChatroom;
  public:
   void GUI_main(chat_client* Lobby); // The handler for the GUI thread

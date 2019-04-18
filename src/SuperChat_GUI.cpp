@@ -21,7 +21,9 @@ std::vector<std::string> read_file(std::string filename)
 
   if(!input.is_open())
     {
-      std::cout<<"File failed to load"<<std::endl;
+      endwin();
+      std::cout<<"File '"<<filename<<"' failed to load"<<std::endl;
+      initscr();
       return all;
       //exit(1);
     }
@@ -39,11 +41,6 @@ std::vector<std::string> read_file(std::string filename)
 // Display an initial prompt to the user, asking them to enter a nickname.
 void Client_Window::display_Login()
 {
-
-  //Configure presets
-  chatRooms=read_file("ChatRooms");
-  numberOfChatrooms=chatRooms.size();
-  currentChatroom = chatRooms[0];
   // Formatting the window.
   initscr();
   printf("<dev> Display login Window Called\n");
@@ -121,9 +118,6 @@ void Client_Window::display_Chatroom()
   int chat_offset = 0; // Used to allow the user to scroll through chat.
   int x;
   std::vector<std::string> temp; // TEMP
-  temp.push_back(username); // TEMP
-  temp.push_back("This is an example");
-  temp.push_back("Find Hot Singles Near You!");
   // Run through what the chatroom window does until you switch to Chatroom Selection window
   while(ch != 80) //  On F1 pressed.
   {
@@ -173,7 +167,7 @@ void Client_Window::display_Chatroom()
           case 65: // On up arrow
             //Increment Chat offset to let the user scroll up
             chat_offset ++;
-            x = read_file(currentChatroom).size();
+            x = read_file("./rooms/"+currentChatroom).size();
             if(chat_offset > x)
               chat_offset = x;
             break;
@@ -397,7 +391,7 @@ int Client_Window::display_ChatroomSelect()
           move(22,0);
           clrtoeol();
         }
-        timeout(-1);
+        timeout(wait_time);
         move(21,0);
         clrtoeol();
         noecho();
@@ -409,14 +403,13 @@ int Client_Window::display_ChatroomSelect()
         {
           printw("Sorry, '%s' is taken.", input_name);
         }
-	else
-	{
-	  printw("Maximum Number of Chatrooms reached.");
-	}
-	refresh_chatselect(Select_Window, selection_offset);
+      	else
+      	{
+      	  printw("Maximum Number of Chatrooms reached.");
+      	}
         break;
       case 66: // on down arrow pressed
-        x = numberOfChatrooms;
+        x = chatRooms.size();
         selection_offset ++;
         selection_offset = selection_offset % x;
         break;
@@ -467,7 +460,7 @@ void Client_Window::refresh_chat(WINDOW* chatwindow, int offset)
   int pos_x = 1;
   int i;
 
-  std::vector<std::string> messages = read_file(currentChatroom); // TEMP
+  std::vector<std::string> messages = read_file("./rooms/"+currentChatroom); // TEMP
   std::vector<std::string> blacklist = read_file("~SuperChat");
   for(i=offset; i<messages.size() && pos_y < 15; i++)
   {
@@ -509,7 +502,6 @@ void Client_Window::refresh_chat(WINDOW* chatwindow, int offset)
 void Client_Window::refresh_chatselect(WINDOW* chatselectwindow, int offset)
 {
   chatRooms = read_file("ChatRooms");
-  numberOfChatrooms = chatRooms.size();
   int i;
   for (i=0; i<chatRooms.size(); i++)
   {
@@ -590,7 +582,7 @@ void Client_Window::send_signoff_to_server()
 {
   char mssg[100];
   strcpy(mssg, username);
-  strcat(mssg, "<sys> has left the server.");
+  strcat(mssg, " has left the server.");
   send_message_to_chat(mssg);
   //TODO - Remove the client from the server.
 }
@@ -601,7 +593,7 @@ void Client_Window::send_chatroom_delete(int index)
 int Client_Window::send_chatroom_create(char* name)
 {
   int success = 0;
-  if(numberOfChatrooms!=10)
+  if(chatRooms.size()!=10)
   {
 	for(int i = 0; i<chatRooms.size(); i++)
 	{
@@ -610,7 +602,6 @@ int Client_Window::send_chatroom_create(char* name)
 	}
 
 	chatRooms.push_back(name);
-	numberOfChatrooms=chatRooms.size();
 	success = 1;
 	std::ofstream fout;
   	std::string line;
@@ -638,6 +629,18 @@ void Client_Window::GUI_main(chat_client* Lobby)
   keypad(stdscr, TRUE);                            // Allows GUI to use function keys, ect.
   display_Login();                                 // Begin prompting for a nickname and join the server.
   c = Lobby;
+  //Configure presets
+  chatRooms=read_file("ChatRooms");
+  if(chatRooms.size() != 0)
+  {
+    currentChatroom = chatRooms[0];
+  }
+  else
+  {
+    printf("No connection to server.\n");
+    return;
+  }
+
   secret_msg_code = (char*) malloc(20*sizeof(char));
   memset(secret_msg_code, '\0', 20);
   int x = 1;

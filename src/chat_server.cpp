@@ -8,6 +8,10 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
+#include <sys/stat.h>
+#include <sys/types.h>
+#include<stdlib.h>
+#include<stdio.h>
 #include <cstdlib>
 #include <deque>
 #include <iostream>
@@ -23,6 +27,38 @@ using asio::ip::tcp;
 
 int main(int argc, char* argv[])
 {
+  if(!remove("ChatRooms"))
+    printf("Removed old ChatRooms file\n");
+  if(!remove("rooms")) // TODO - This currently doesnt work because "rooms" is not empty. Maybe this doesnt need to be fixed.
+    printf("Removed old rooms directory\n");
+
+  FILE* spawn = fopen("ChatRooms", "w");
+  if(spawn)
+  {
+    fputs("Lobby\n",spawn);
+    fclose(spawn);
+    spawn = NULL;
+    printf("Created new ChatRoom file\n");
+    if(!chmod("ChatRooms", S_IRWXU | S_IRWXG | S_IRWXO))
+      printf("Set ChatRooms permissions\n");
+  }
+  // Set appropriate access rules for newly created files.
+  mkdir("rooms", S_IRWXU | S_IRWXG | S_IRWXO);
+  if(!chmod("rooms", S_IRWXU | S_IRWXG | S_IRWXO))
+    printf("Set rooms directory permissions\n");
+
+
+  spawn = fopen("./rooms/Lobby", "w");
+  if(spawn)
+  {
+    fputs("SERVER: Server Started\n", spawn);
+    fclose(spawn);
+    printf("Created new Lobby file\n");
+    if(!chmod("./rooms/Lobby", S_IRWXU | S_IRWXG | S_IRWXO))
+      printf("Set Lobby permissions\n");
+  }
+
+
   try
   {
     if (argc < 2)
