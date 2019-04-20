@@ -58,7 +58,9 @@ void Client_Window::display_Login()
   char mssg1[] = "WELCOME TO SUPERCHAT";
   char mssg2[] = "Current Users: ";
   char mssg3[] = "Please enter a nickname!";
+  wattron(Login_Window, A_BOLD | A_BLINK);
   mvwprintw(Login_Window,3,((width-strlen(mssg1))/2),"%s",mssg1);
+  wattroff(Login_Window, A_BOLD | A_BLINK);
   mvwprintw(Login_Window,5,((width-strlen(mssg2)-3)/2), "%s%d/%d",mssg2, num_users, MAX_USERS);
 
   // Take an input nickname from the user and confirm it
@@ -85,6 +87,7 @@ void Client_Window::display_Login()
       noecho();
       wrefresh(Login_Window);
       ch = wgetch(Login_Window);
+
     }
     else
     {
@@ -152,7 +155,29 @@ void Client_Window::display_Chatroom()
             clrtoeol();
             refresh();
             mvgetnstr(20, 3, input_mssg, 512);
-            send_message_to_chat(input_mssg); // Sends message to Chatroom for handling
+            // Check for misspelled words.
+            {
+              word_search searcher("words.txt");
+              char copy[512];
+              strcpy(copy, input_mssg);
+              char* tok = strtok(copy, " ");
+              move(20,3);
+              while(tok!=NULL)
+              {
+                std::string checkword = tok;
+                if(!searcher.check_word(checkword))
+                  attron(A_UNDERLINE);
+                printw("%s", tok);
+                attroff(A_UNDERLINE);
+                printw(" ");
+                tok = strtok(NULL, " ");
+                refresh();
+              }
+              attroff(A_UNDERLINE | A_BOLD);
+              mvprintw(23,0, "Type enter to retype message. Any other key to send and continue.");
+              if(getch() != 10)
+                send_message_to_chat(input_mssg); // Sends message to Chatroom for handling
+            }
             break;
           case 101: // On e, set a new secret_msg_code
             echo();
@@ -490,9 +515,11 @@ void Client_Window::refresh_chat(WINDOW* chatwindow, int offset)
         if(strcmp(secret_msg_code, token))
         {
           memset(mssg, '#', strlen(mssg));
+          wattron(chatwindow, A_DIM);
         }
       }
       mvwprintw(chatwindow, pos_y, 1, "%s\n", mssg);
+      wattroff(chatwindow, A_DIM);
       getyx(chatwindow, pos_y, pos_x);
     }
   }
@@ -640,7 +667,6 @@ void Client_Window::GUI_main(chat_client* Lobby)
     printf("No connection to server.\n");
     return;
   }
-
   secret_msg_code = (char*) malloc(20*sizeof(char));
   memset(secret_msg_code, '\0', 20);
   int x = 1;
