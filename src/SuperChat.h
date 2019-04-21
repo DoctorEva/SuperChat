@@ -41,7 +41,7 @@ private:
   void send_download_request(char* filename); // calls Download from the chatroom. Depends on Chatroom
   int send_upload_request(char* filename); // Sends a filename to Chatroom for upload. Depends on Chatroom
   void send_signoff_to_server(); // Exit the server and ends the program. Depends on Server.
-  void send_chatroom_delete(int index); // Tells the chatroom to delete itself. Depends on Server.
+  int send_chatroom_delete(int index); // Tells the chatroom to delete itself. Depends on Server.
   int send_chatroom_create(char* name); // Sends a request to make a new chatroom.
 };
 

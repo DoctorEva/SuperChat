@@ -401,7 +401,10 @@ int Client_Window::display_ChatroomSelect()
         refresh();
         break;
       case 113: // On q pressed, delete the selected chatroom IF it is empty.
-        send_chatroom_delete(selection_offset);
+        if(send_chatroom_delete(selection_offset))
+          mvprintw(21,0, "Chatroom successfully deleted.");
+        else
+          mvprintw(21,0, "Chatroom is not empty, cannot delete.");
         break;
       case 99: // On c pressed, attempt to create a new chatroom
         move(21,0);
@@ -613,9 +616,12 @@ void Client_Window::send_signoff_to_server()
   send_message_to_chat(mssg);
   //TODO - Remove the client from the server.
 }
-void Client_Window::send_chatroom_delete(int index)
+int Client_Window::send_chatroom_delete(int index)
 {
+  int success = 0;
+  std::string target_chatroom = read_file("ChatRooms")[index];
   // TODO - Delete the requested chatroom at index if it is empty.
+  return success;
 }
 int Client_Window::send_chatroom_create(char* name)
 {
