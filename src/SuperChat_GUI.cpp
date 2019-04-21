@@ -402,7 +402,11 @@ int Client_Window::display_ChatroomSelect()
         break;
       case 113: // On q pressed, delete the selected chatroom IF it is empty.
         if(send_chatroom_delete(selection_offset))
-          mvprintw(21,0, "Chatroom successfully deleted.");
+	  {
+	   selection_offset = 0;
+	   mvprintw(21,0, "Chatroom successfully deleted.");
+	   }
+          
         else
           mvprintw(21,0, "Chatroom is not empty, cannot delete.");
         break;
@@ -531,8 +535,10 @@ void Client_Window::refresh_chat(WINDOW* chatwindow, int offset)
 }
 void Client_Window::refresh_chatselect(WINDOW* chatselectwindow, int offset)
 {
+  wclear(chatselectwindow);
   chatRooms = read_file("ChatRooms");
   int i;
+  
   for (i=0; i<chatRooms.size(); i++)
   {
     wmove(chatselectwindow, i+1, 0);
@@ -618,10 +624,32 @@ void Client_Window::send_signoff_to_server()
 }
 int Client_Window::send_chatroom_delete(int index)
 {
-  int success = 0;
+ int success = 0;
+
   std::string target_chatroom = read_file("ChatRooms")[index];
-  // TODO - Delete the requested chatroom at index if it is empty.
-  return success;
+  chatRooms.erase( std::remove(begin(chatRooms), end(chatRooms), target_chatroom), end(chatRooms)); // Deleting the chat room
+	
+  std::ofstream fout;
+  std::string line;
+  fout.open("ChatRooms", std::ios::out);
+  for(int i = 0; i<chatRooms.size(); i++)
+  {
+	fout<<chatRooms[i]<<"\n"; //refresh list
+  }
+  fout.close();
+  chatRooms = read_file("ChatRooms");
+	
+  char buf[strlen("./rooms/")+target_chatroom.size()+1] = "./rooms/";
+  strcat(buf,target_chatroom.c_str());
+  if(!remove(buf))
+  {
+	success = 1;
+	return success;
+  }
+  else
+  {
+	return success;
+  }
 }
 int Client_Window::send_chatroom_create(char* name)
 {
