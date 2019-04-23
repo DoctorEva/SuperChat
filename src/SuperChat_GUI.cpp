@@ -626,6 +626,11 @@ int Client_Window::send_chatroom_delete(int index)
 {
  int success = 0;
 
+  if(index==0)
+  {
+	std::cout<<"Can't delete Lobby"<<std::endl;
+	return success;
+  }
   std::string target_chatroom = read_file("ChatRooms")[index];
   chatRooms.erase( std::remove(begin(chatRooms), end(chatRooms), target_chatroom), end(chatRooms)); // Deleting the chat room
 	
