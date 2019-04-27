@@ -26,7 +26,7 @@ private:
   //void set_chatroom(Chatroom* room);
   void display_Login(); // Displays the login screen
   int display_ChatroomSelect();
-  void display_Chatroom();
+  void display_Chatroom(word_search searcher);
 
   void add_blacklist(char* banning_target); // Opens Superchat~ and adds an entry
   void remove_blacklist(std::string removal_target);// Opens ~SuperChat and deletes a specific entry
@@ -43,6 +43,8 @@ private:
   void send_signoff_to_server(); // Exit the server and ends the program. Depends on Server.
   int send_chatroom_delete(int index); // Tells the chatroom to delete itself. Depends on Server.
   int send_chatroom_create(char* name); // Sends a request to make a new chatroom.
+
+  std::vector<std::string> get_from_server(std::string request);
 };
 
 

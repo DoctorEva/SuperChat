@@ -42,8 +42,7 @@ std::vector<std::string> read_file(std::string filename)
 void Client_Window::display_Login()
 {
   // Formatting the window.
-  initscr();
-  printf("<dev> Display login Window Called\n");
+  //initscr();
   WINDOW *Login_Window;
   int startx, starty, width, height;
   char input_name[NICKNAME_CHARS];
@@ -100,16 +99,15 @@ void Client_Window::display_Login()
 
   // The user has successfully joined with a unique username, free up the screen.
   delwin(Login_Window);
-  endwin();
+  //endwin();
   strcpy(username, input_name); // Save the user's accepted nickname in the class attribute.
 }
 
 // This screen allows you to navigate through a chatroom and it's features.
-void Client_Window::display_Chatroom()
+void Client_Window::display_Chatroom(word_search searcher)
 {
   // Initialize the display_Chatroom screen and format it.
-  initscr();
-  printf("<dev> Display Chatroom called\n");
+  //initscr();
   mvprintw(0,0, "F1 : Switch to Chatroom Select. You are in %s\n", currentChatroom.c_str());
   mvprintw(1,0, "LEFT or RIGHT to switch tabs. UP and DOWN to scroll.\n");
   int ch = 0; // Character input. This is your "keybinds"
@@ -120,7 +118,6 @@ void Client_Window::display_Chatroom()
   box(Chatroom_Window, 0,0);
   int chat_offset = 0; // Used to allow the user to scroll through chat.
   int x;
-  std::vector<std::string> temp; // TEMP
   // Run through what the chatroom window does until you switch to Chatroom Selection window
   while(ch != 80) //  On F1 pressed.
   {
@@ -157,7 +154,6 @@ void Client_Window::display_Chatroom()
             mvgetnstr(20, 3, input_mssg, 512);
             // Check for misspelled words.
             {
-              word_search searcher("words.txt");
               char copy[512];
               strcpy(copy, input_mssg);
               char* tok = strtok(copy, " ");
@@ -192,7 +188,7 @@ void Client_Window::display_Chatroom()
           case 65: // On up arrow
             //Increment Chat offset to let the user scroll up
             chat_offset ++;
-            x = read_file("./rooms/"+currentChatroom).size();
+            x = get_from_server("MSSGS").size();
             if(chat_offset > x)
               chat_offset = x;
             break;
@@ -205,10 +201,10 @@ void Client_Window::display_Chatroom()
         mvprintw(2,0, "Chat | USERS | Shared Files | Blacklist");
         mvprintw(20, 0, " e - blacklist selected ");
         refresh();
-        x = temp.size(); // Temp, should be set to the current number of users in the chatroom.
+        x = get_from_server("USERS").size(); // Temp, should be set to the current number of users in the chatroom.
         if(x>0)
         {
-          refresh_list_tab(Chatroom_Window, chat_offset, temp);
+          refresh_list_tab(Chatroom_Window, chat_offset, get_from_server("USERS"));
         }
         else
         {
@@ -223,7 +219,7 @@ void Client_Window::display_Chatroom()
           switch(ch)
           {
             case 101: // On e
-              selected_str = strdup(temp[chat_offset].c_str());
+              selected_str = strdup(get_from_server("USERS")[chat_offset].c_str());
               add_blacklist(selected_str);
               break;
             case 66: // On Dowm Arrow
@@ -240,10 +236,10 @@ void Client_Window::display_Chatroom()
         mvprintw(2,0, "Chat | Users | SHARED FILES | Blacklist");
         mvprintw(20, 0, " e - download selected | c - upload a file");
         refresh();
-        x = temp.size(); // Temp, should be set to the current number of files in the chatroom
+        x = get_from_server("SHARED").size(); // Temp, should be set to the current number of files in the chatroom
         if(x>0)
         {
-          refresh_file_tab(Chatroom_Window, chat_offset, temp);
+          refresh_file_tab(Chatroom_Window, chat_offset, get_from_server("SHARED"));
         }
         else
         {
@@ -257,7 +253,7 @@ void Client_Window::display_Chatroom()
           switch(ch)
           {
             case 101: // on e
-              selected_str = strdup(temp[chat_offset].c_str());
+              selected_str = strdup(get_from_server("SHARED")[chat_offset].c_str());
               send_download_request(selected_str);
               break;
             case 99: // On c pressed, attempt to upload a new file.
@@ -282,14 +278,14 @@ void Client_Window::display_Chatroom()
               }
               else
               {
-                printw("Sorry, a file named '%s' is already on the server.", input_file);
+                printw("Sorry, file '%s' could not be sent,", input_file);
               }
               refresh();
               sleep(1);
               break;
             case 66: // on Down arrow
               chat_offset ++;
-              x = temp.size();
+              x = get_from_server("SHARED").size();
               chat_offset = chat_offset % x;
               break;
             case 65: // On Up arrow
@@ -357,15 +353,14 @@ void Client_Window::display_Chatroom()
   erase();
   refresh();
   delwin(Chatroom_Window);
-  endwin();
+  //endwin();
 }
 
 // Displays the Chatroom Select window, returns false if the user signed out.
 int Client_Window::display_ChatroomSelect()
 {
   // Initialize the chatroom select screen and format it.
-  printf("<dev> display ChatroomSelect called.\n");
-  initscr();
+  //initscr();
   mvprintw(0,0, "F1 : Switch to Chatroom Window");
   mvprintw(0,45, "Current Chatroom: %s", currentChatroom.c_str());
   mvprintw(1,0, "UP and DOWN to select a chatroom");
@@ -382,6 +377,7 @@ int Client_Window::display_ChatroomSelect()
   // Allow the chatroom select window to run until the user switches to a chatroom window.
   while(ch != 80) // On F1 pressed, switch back to chatroom window.
   {
+    chatRooms = get_from_server("CHATROOMS");
     refresh_chatselect(Select_Window, selection_offset);
     int wait_time = 500;
     timeout(wait_time);
@@ -402,13 +398,12 @@ int Client_Window::display_ChatroomSelect()
         break;
       case 113: // On q pressed, delete the selected chatroom IF it is empty.
         if(send_chatroom_delete(selection_offset))
-	  {
-	   selection_offset = 0;
-	   mvprintw(21,0, "Chatroom successfully deleted.");
-	   }
-          
+    	  {
+          selection_offset = 0;
+      	  mvprintw(21,0, "Chatroom successfully deleted.");
+	      }
         else
-          mvprintw(21,0, "Chatroom is not empty, cannot delete.");
+          mvprintw(21,0, "Chatroom is not empty or is Lobby, cannot delete.");
         break;
       case 99: // On c pressed, attempt to create a new chatroom
         move(21,0);
@@ -456,7 +451,7 @@ int Client_Window::display_ChatroomSelect()
   }
   // Switching to the Chatroom window, free the screen.
   delwin(Select_Window);
-  endwin();
+  //endwin();
   return 1;
 }
 
@@ -492,7 +487,7 @@ void Client_Window::refresh_chat(WINDOW* chatwindow, int offset)
   int pos_x = 1;
   int i;
 
-  std::vector<std::string> messages = read_file("./rooms/"+currentChatroom); // TEMP
+  std::vector<std::string> messages = get_from_server("MSSGS");
   std::vector<std::string> blacklist = read_file("~SuperChat");
   for(i=offset; i<messages.size() && pos_y < 15; i++)
   {
@@ -536,9 +531,8 @@ void Client_Window::refresh_chat(WINDOW* chatwindow, int offset)
 void Client_Window::refresh_chatselect(WINDOW* chatselectwindow, int offset)
 {
   wclear(chatselectwindow);
-  chatRooms = read_file("ChatRooms");
   int i;
-  
+
   for (i=0; i<chatRooms.size(); i++)
   {
     wmove(chatselectwindow, i+1, 0);
@@ -627,13 +621,12 @@ int Client_Window::send_chatroom_delete(int index)
  int success = 0;
 
   if(index==0)
-  {
-	std::cout<<"Can't delete Lobby"<<std::endl;
+  {//Cannot delete lobby.
 	return success;
   }
-  std::string target_chatroom = read_file("ChatRooms")[index];
+  std::string target_chatroom = chatRooms[index];
   chatRooms.erase( std::remove(begin(chatRooms), end(chatRooms), target_chatroom), end(chatRooms)); // Deleting the chat room
-	
+  // TODO - rewrite this so that the server handles deletion.
   std::ofstream fout;
   std::string line;
   fout.open("ChatRooms", std::ios::out);
@@ -643,7 +636,7 @@ int Client_Window::send_chatroom_delete(int index)
   }
   fout.close();
   chatRooms = read_file("ChatRooms");
-	
+
   char buf[strlen("./rooms/")+target_chatroom.size()+1] = "./rooms/";
   strcat(buf,target_chatroom.c_str());
   if(!remove(buf))
@@ -666,7 +659,7 @@ int Client_Window::send_chatroom_create(char* name)
 	  if(chatRooms[i]==name)
 		return 2; //Name taken
 	}
-
+  // TODO - Rewrite this to be handled by server.
 	chatRooms.push_back(name);
 	success = 1;
 	std::ofstream fout;
@@ -689,29 +682,48 @@ void Client_Window::send_message_to_chat(char* input)
   c->write(msg, currentChatroom, username);
 }
 
+std::vector<std::string> Client_Window::get_from_server(std::string request)
+{
+  std::vector<std::string> ret_vec;
+  //TODO - Send a request to server and get a copy of the vector stored on it.
+  // Request vals:
+  /*
+  SHARED = shared files list.
+  USERS = List of users in the current chatroom.
+  MSSGS = List of messages in the Current chatroom.
+  CHATROOMS = list of chatrooms on server
+  */
+  ret_vec.push_back("Lebowitz : This is a test");
+  return ret_vec;
+}
+
 void Client_Window::GUI_main(chat_client* Lobby)
 {
   username = (char*) malloc(NICKNAME_CHARS*sizeof(char));      // Allocating memory for the username.
   keypad(stdscr, TRUE);                            // Allows GUI to use function keys, ect.
-  display_Login();                                 // Begin prompting for a nickname and join the server.
   c = Lobby;
   //Configure presets
-  chatRooms=read_file("ChatRooms");
+  chatRooms= get_from_server("CHATROOMS");
   if(chatRooms.size() != 0)
   {
     currentChatroom = chatRooms[0];
   }
   else
   {
-    printf("No connection to server.\n");
+    printf("No connection to server. Exiting SuperChat.\n");
     return;
   }
+  word_search searcher("words.txt");
+  initscr();
+  display_Login();  // Begin prompting for a nickname and join the server.
   secret_msg_code = (char*) malloc(20*sizeof(char));
   memset(secret_msg_code, '\0', 20);
   int x = 1;
   while(x)                                         // Allows the user to alternate between these two windows
   {
-    display_Chatroom();                          // Start displaying the SuperChat Lobby.
+    display_Chatroom(searcher);                          // Start displaying the SuperChat Lobby.
     x = display_ChatroomSelect();                    // Allows the user to change lobby, ends the program when they sign out.
   }
+  endwin();
+  puts("Exiting Superchat by signoff\n");
 }
