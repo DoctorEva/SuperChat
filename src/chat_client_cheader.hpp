@@ -56,11 +56,30 @@ class word_search{
   //true is returned if spelt correctly
   //else false is returned
   bool check_word(std::string word_check){
-       return binary_search(word_list.begin(), word_list.end(),word_check);
+
+    //First remove all punctuation
+    std::string result;
+    std::remove_copy_if(word_check.begin(), word_check.end(),            
+                        std::back_inserter(result), //Store output           
+                        std::ptr_fun<int, int>(&std::ispunct)  
+                       );
+    //Check if it is a number
+    if(is_number(result))
+      return true;
+    //make everything lowercase
+    std::transform(result.begin(), result.end(), result.begin(), ::tolower);
+    //perform binary search
+    return binary_search(word_list.begin(), word_list.end(),result);
   }
 
   private:
   std::vector<std::string> word_list;
+
+  bool is_number(const std::string& s)
+  {
+    return !s.empty() && std::find_if(s.begin(), 
+        s.end(), [](char c) { return !std::isdigit(c); }) == s.end();
+  }
 
   //bool sortname(const std::string &lhs, const std::string &rhs) { return *lhs < *rhs; }
 };
