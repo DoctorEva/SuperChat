@@ -204,6 +204,12 @@ private:
               else if(!strcmp(tok, "DEL_ROOM"))
               {
                 printf("Attempting to delete %s\n", arg);
+                int index = atoi(arg);
+                //assert( index < CHATROOMS.size());
+                if(CHATROOMS[index].cur_users.size() == 0 && index)
+                {
+                  CHATROOMS.erase(CHATROOMS.begin() + index);
+                }
               }
               else if(!strcmp(tok, "GET"))
               {
@@ -218,9 +224,9 @@ private:
                 else if(!strcmp(arg, "USERS"))
                 {
                   unsigned int i;
-                  for(i=0; i<ALLUSERS.size(); i++)
+                  for(i=0; i<CHATROOMS[current_room].cur_users.size(); i++)
                   {
-                    strcat(bod, CHATROOMS[0].cur_users[i].c_str());
+                    strcat(bod, CHATROOMS[current_room].cur_users[i].c_str());
                     strcat(bod,"#");
                   }
                 }
@@ -266,7 +272,14 @@ private:
               }
               else if(!strcmp(tok, "CHANGE"))
               {
-                current_room = atoi(arg);
+                char* tok = strtok(arg, " ");
+                int old_room = current_room;
+                current_room = atoi(tok);
+                puts(tok);
+                tok = strtok(NULL, " ");
+                CHATROOMS[old_room].cur_users.erase( std::remove(begin(CHATROOMS[old_room].cur_users), end(CHATROOMS[old_room].cur_users), tok), end(CHATROOMS[old_room].cur_users));
+                CHATROOMS[current_room].cur_users.push_back(tok);
+                puts(tok);
               }
             }
 

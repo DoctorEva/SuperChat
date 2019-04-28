@@ -473,7 +473,7 @@ int Client_Window::display_ChatroomSelect()
 void Client_Window::change_chatroom(int index)
 {
   char bod[512];
-  sprintf(bod, "CHANGE-%d",index);
+  sprintf(bod, "CHANGE-%d %s",index, username);
   chat_message msg;
   msg.body_length(strlen(bod));
   memcpy(msg.body(), bod, msg.body_length()+1);
@@ -658,35 +658,14 @@ void Client_Window::send_signoff_to_server()
 int Client_Window::send_chatroom_delete(int index)
 {
  int success = 0;
-
-  if(index==0)
-  {//Cannot delete lobby.
-	return success;
-  }
-  std::string target_chatroom = chatRooms[index];
-  chatRooms.erase( std::remove(begin(chatRooms), end(chatRooms), target_chatroom), end(chatRooms)); // Deleting the chat room
-  // TODO - rewrite this so that the server handles deletion.
-  std::ofstream fout;
-  std::string line;
-  fout.open("ChatRooms", std::ios::out);
-  for(int i = 0; i<chatRooms.size(); i++)
-  {
-	fout<<chatRooms[i]<<"\n"; //refresh list
-  }
-  fout.close();
-  chatRooms = read_file("ChatRooms");
-
-  char buf[strlen("./rooms/")+target_chatroom.size()+1] = "./rooms/";
-  strcat(buf,target_chatroom.c_str());
-  if(!remove(buf))
-  {
-	success = 1;
-	return success;
-  }
-  else
-  {
-	return success;
-  }
+ chat_message msg;
+ char bod[100];
+ sprintf(bod,"DEL_ROOM-%d", index);
+ msg.body_length(strlen(bod));
+ memcpy(msg.body(), bod, msg.body_length()+1);
+ msg.encode_header();
+ c->write(msg, currentChatroom, username);
+ return 1;
 }
 int Client_Window::send_chatroom_create(char* name)
 {
@@ -698,10 +677,10 @@ int Client_Window::send_chatroom_create(char* name)
   memcpy(msg.body(), bod, msg.body_length()+1);
   msg.encode_header();
   c->write(msg, currentChatroom, username);
-  char mssg[512];
-  change_chatroom(chatRooms.size());
-  sprintf(mssg, "%s: <sys> just created the chat.", username);
-  send_message_to_chat(mssg);
+  //char mssg[512];
+  //change_chatroom(chatRooms.size());
+  //sprintf(mssg, "%s: <sys> just created the chat.", username);
+  //send_message_to_chat(mssg);
 
   return success;
 }
