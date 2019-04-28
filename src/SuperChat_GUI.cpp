@@ -404,6 +404,7 @@ int Client_Window::display_ChatroomSelect()
         return 0;
       case 101: // on e pressed, switch to the selected chatroom
         currentChatroom = chatRooms[selection_offset];
+        change_chatroom(selection_offset);
         move(0,45);
         clrtoeol();
         mvprintw(0,45, "Current Chatroom: %s", currentChatroom.c_str());
@@ -438,6 +439,8 @@ int Client_Window::display_ChatroomSelect()
         if(send_chatroom_create(input_name)==1)
         {
           printw("Successfully created %s", input_name);
+          mvprintw(0,45, "Current Chatroom: %s", currentChatroom.c_str());
+          refresh();
         }
         else if(send_chatroom_create(input_name)==2)
         {
@@ -467,7 +470,16 @@ int Client_Window::display_ChatroomSelect()
   //endwin();
   return 1;
 }
-
+void Client_Window::change_chatroom(int index)
+{
+  char bod[512];
+  sprintf(bod, "CHANGE-%d",index);
+  chat_message msg;
+  msg.body_length(strlen(bod));
+  memcpy(msg.body(), bod, msg.body_length()+1);
+  msg.encode_header();
+  c->write(msg, currentChatroom, username);
+}
 void Client_Window::add_blacklist(char* banning_target)
 {
   FILE *saves = fopen("~SuperChat", "a");
@@ -678,40 +690,34 @@ int Client_Window::send_chatroom_delete(int index)
 }
 int Client_Window::send_chatroom_create(char* name)
 {
-  int success = 0;
-  if(chatRooms.size()!=10)
-  {
-	for(int i = 0; i<chatRooms.size(); i++)
-	{
-	  if(chatRooms[i]==name)
-		return 2; //Name taken
-	}
-  // TODO - Rewrite this to be handled by server.
-	chatRooms.push_back(name);
-	success = 1;
-	std::ofstream fout;
-  	std::string line;
-  	fout.open("ChatRooms", std::ios::app);
-  	fout<<name<<"\n"; //Add chatrooms to chatroom list
-	fout.close();
-  currentChatroom = name;
-  char mssg[] = "<sys> just created the chat.";
+  int success = 1;
+  char bod[512];
+  sprintf(bod, "NEW_ROOM-%s",name);
+  chat_message msg;
+  msg.body_length(strlen(bod));
+  memcpy(msg.body(), bod, msg.body_length()+1);
+  msg.encode_header();
+  c->write(msg, currentChatroom, username);
+  char mssg[512];
+  change_chatroom(chatRooms.size());
+  sprintf(mssg, "%s: <sys> just created the chat.", username);
   send_message_to_chat(mssg);
-  }
+
   return success;
 }
 void Client_Window::send_message_to_chat(char* input)
 {
+  char bod[512];
+  sprintf(bod, "CHAT-%s",input);
   chat_message msg;
-  msg.body_length(strlen(input));
-  memcpy(msg.body(), input, msg.body_length()+1);
+  msg.body_length(strlen(bod));
+  memcpy(msg.body(), bod, msg.body_length()+1);
   msg.encode_header();
   c->write(msg, currentChatroom, username);
 }
 
 std::vector<std::string> Client_Window::get_from_server(std::string request)
 {
-  std::vector<std::string> ret_vec;
   chat_message msg;
   char bod[100];
   //TODO - Send a request to server and get a copy of the vector stored on it.
@@ -724,15 +730,15 @@ std::vector<std::string> Client_Window::get_from_server(std::string request)
   CHATROOMS = list of chatrooms on server
   */
   // Sending Request
+  int start = c->update_num;
   sprintf(bod,"GET-%s",request.c_str());
   msg.body_length(strlen(bod));
   memcpy(msg.body(), bod, msg.body_length()+1);
   msg.encode_header();
   c->write(msg, currentChatroom, username);
 
-
-  ret_vec.push_back("Eva: Hi");
-  return ret_vec;
+  while(start == c->update_num);
+  return c->ret_vec;
 }
 
 void Client_Window::GUI_main(chat_client* Lobby)
