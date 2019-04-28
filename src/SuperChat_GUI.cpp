@@ -46,7 +46,7 @@ void Client_Window::display_Login()
   WINDOW *Login_Window;
   int startx, starty, width, height;
   char input_name[NICKNAME_CHARS];
-  int num_users = 0; // NOT IMPLEMENTED HERE - to be taken from Server. // num_users = current_server.get_num_users()
+  int num_users = get_from_server("ALLUSERS").size();
   height = 20;
   width = 80;
   starty = (LINES - height) / 2;
@@ -94,6 +94,15 @@ void Client_Window::display_Login()
       wrefresh(Login_Window);
     }
   }
+  // Username is free and user is joining, send to server for addition.
+  chat_message msg;
+  char bod[100];
+  sprintf(bod,"NEW_USER-%s", input_name);
+  msg.body_length(strlen(bod));
+  memcpy(msg.body(), bod, msg.body_length()+1);
+  msg.encode_header();
+  c->write(msg, currentChatroom, username);
+
   mvwprintw(Login_Window, 10, 3,"Welcome, \"%s\". Attempting to join server..", input_name);
   wrefresh(Login_Window);
 
@@ -170,9 +179,13 @@ void Client_Window::display_Chatroom(word_search searcher)
                 refresh();
               }
               attroff(A_UNDERLINE | A_BOLD);
-              mvprintw(23,0, "Type enter to retype message. Any other key to send and continue.");
-              if(getch() != 10)
-                send_message_to_chat(input_mssg); // Sends message to Chatroom for handling
+              mvprintw(23,0, "Type enter to send message. Any other key to cancel.");
+              if(getch() == 10)
+              {
+                sprintf(copy, "%s: %s", username, input_mssg);
+                send_message_to_chat(copy); // Sends message to Chatroom for handling
+              }
+
             }
             break;
           case 101: // On e, set a new secret_msg_code
@@ -584,7 +597,14 @@ void Client_Window::refresh_file_tab(WINDOW* chatwindow, int offset, std::vector
 int Client_Window::send_login_request(char* name)
 {
   int success = 1;
-  // TODO - Scan through all online users' names on the server. return 0 if a match is found.
+  std::vector<std::string> allusers = get_from_server("ALLUSERS");
+  int i;
+  // See if username is taken
+  for(i=0;i<allusers.size();i++)
+  {
+    if(!strcmp(name, allusers[i].c_str()))
+      return 0;
+  }
   return success;
 }
 void Client_Window::send_download_request(char* filename)
@@ -612,9 +632,16 @@ void Client_Window::send_signoff_to_server()
 {
   char mssg[100];
   strcpy(mssg, username);
-  strcat(mssg, " has left the server.");
+  strcat(mssg, ": has left the server.");
   send_message_to_chat(mssg);
-  //TODO - Remove the client from the server.
+  //Remove the client from the server.
+  chat_message msg;
+  char bod[100];
+  sprintf(bod,"LOGOFF-%s", username);
+  msg.body_length(strlen(bod));
+  memcpy(msg.body(), bod, msg.body_length()+1);
+  msg.encode_header();
+  c->write(msg, currentChatroom, username);
 }
 int Client_Window::send_chatroom_delete(int index)
 {
@@ -685,15 +712,26 @@ void Client_Window::send_message_to_chat(char* input)
 std::vector<std::string> Client_Window::get_from_server(std::string request)
 {
   std::vector<std::string> ret_vec;
+  chat_message msg;
+  char bod[100];
   //TODO - Send a request to server and get a copy of the vector stored on it.
   // Request vals:
   /*
   SHARED = shared files list.
   USERS = List of users in the current chatroom.
+  ALLUSERS = List of all usernames on the server.
   MSSGS = List of messages in the Current chatroom.
   CHATROOMS = list of chatrooms on server
   */
-  ret_vec.push_back("Lebowitz : This is a test");
+  // Sending Request
+  sprintf(bod,"GET-%s",request.c_str());
+  msg.body_length(strlen(bod));
+  memcpy(msg.body(), bod, msg.body_length()+1);
+  msg.encode_header();
+  c->write(msg, currentChatroom, username);
+
+
+  ret_vec.push_back("Eva: Hi");
   return ret_vec;
 }
 

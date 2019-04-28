@@ -58,7 +58,6 @@ int main(int argc, char* argv[])
       printf("Set Lobby permissions\n");
   }
 
-
   try
   {
     if (argc < 2)

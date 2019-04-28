@@ -56,7 +56,7 @@ class word_search{
   //true is returned if spelt correctly
   //else false is returned
   bool check_word(std::string word_check){
-       return binary_search(word_list.begin(), word_list.end(),word_check);   
+       return binary_search(word_list.begin(), word_list.end(),word_check);
   }
 
   private:
@@ -85,11 +85,13 @@ public:
         {
           bool write_in_progress = !write_msgs_.empty();
           write_msgs_.push_back(msg);
+          /*
             std::ofstream fout;
             std::string line;
-	    fout.open("./rooms/"+filename, std::ios::app);
-	    fout<<username<< ": "<<msg.body()<<"\n"; //print message to file.
-	    fout.close();
+      	    fout.open("./rooms/"+filename, std::ios::app);
+      	    fout<<username<< ": "<<msg.body()<<"\n"; //print message to file.
+      	    fout.close();
+          */
           if (!write_in_progress)
           {
             do_write();

@@ -63,12 +63,12 @@ public:
     for (auto participant: participants_)
       participant->deliver(msg);
   }
-   
+
   char* getName()
   {
     return chatroomName;
   }
-  
+
   void setName(char* chatRoomName)
   {
 	chatroomName = chatRoomName;
@@ -82,6 +82,20 @@ private:
 };
 
 //----------------------------------------------------------------------
+class student_chatroom
+{
+public:
+  std::vector<std::string> messages;
+  std::vector<std::string> cur_users;
+private:
+  std::string name;
+  student_chatroom(std::string Name)
+  {
+    name = Name;
+  }
+};
+std::vector<std::string> ALLUSERS;
+std::vector<student_chatroom> CHATROOMS;
 
 class chat_session
   : public chat_participant,
@@ -138,7 +152,66 @@ private:
         {
           if (!ec)
           {
-	    std::cout<<"Server interacting with client."<<std::endl; //Remove
+            read_msg_.body()[read_msg_.body_length()] = '\0';
+	          std::cout<<"Received: '"<<read_msg_.body()<<"'"<<std::endl;
+
+            char body[read_msg_.body_length()+1];
+            strcpy(body, read_msg_.body());
+            char* tok = strtok(body, "-");
+            char arg[read_msg_.body_length()+1];
+            if(tok)
+            {
+              strcpy(arg, &(read_msg_.body()[strlen(tok)+1]));
+              if(!strcmp(tok, "NEW_USER"))
+              {
+                printf("Adding new user %s\n", arg);
+                ALLUSERS.push_back(arg);
+                unsigned int i;
+                for(i = 0; i < ALLUSERS.size(); i++)
+                {
+                  std::cout<<ALLUSERS[i]<<std::endl;
+                }
+              }
+              else if(!strcmp(tok, "LOGOFF"))
+              {
+                printf("Logging off user %s\n", arg);
+                std::string argstr = arg;
+                ALLUSERS.erase( std::remove(begin(ALLUSERS), end(ALLUSERS), argstr), end(ALLUSERS));
+              }
+              else if(!strcmp(tok, "NEW_ROOM"))
+              {
+                printf("Attempting to create %s\n", arg);
+              }
+              else if(!strcmp(tok, "DEL_ROOM"))
+              {
+                printf("Attempting to delete %s\n", arg);
+              }
+              else if(!strcmp(tok, "GET"))
+              {
+                if(!strcmp(arg, "SHARED"))
+                {
+
+                }
+                else if(!strcmp(arg, "USERS"))
+                {
+
+                }
+                else if(!strcmp(arg, "ALLUSERS"))
+                {
+
+                }
+                else if(!strcmp(arg, "MSSGS"))
+                {
+
+                }
+                else if(!strcmp(arg, "CHATROOMS"))
+                {
+
+                }
+              }
+            }
+
+
             room_.deliver(read_msg_);
             do_read_header();
           }
@@ -176,7 +249,9 @@ private:
   chat_room& room_;
   chat_message read_msg_;
   chat_message_queue write_msgs_;
+
 };
+
 
 //----------------------------------------------------------------------
 
