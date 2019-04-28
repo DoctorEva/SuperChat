@@ -729,7 +729,21 @@ std::vector<std::string> Client_Window::get_from_server(std::string request)
   memcpy(msg.body(), bod, msg.body_length()+1);
   msg.encode_header();
   c->write(msg, currentChatroom, username);
+  endwin();
 
+  while(strcmp(c->read_msg_.body(), "GETSTART"));
+  std::string last_seen = c->read_msg_.body();
+  while(strncmp(c->read_msg_.body(), "END", 3))
+  {
+    std::string val= c->read_msg_.body();
+    if(val.compare(last_seen))
+    {
+      std::cout<<val<<std::endl;
+      ret_vec.push_back(val);
+    }
+  }
+  std::cout<<"Exiting Loop"<<std::endl;
+  initscr();
 
   ret_vec.push_back("Eva: Hi");
   return ret_vec;

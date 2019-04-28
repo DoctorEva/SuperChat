@@ -188,31 +188,81 @@ private:
               }
               else if(!strcmp(tok, "GET"))
               {
+                chat_message msg;
+                char bod[] = "GETSTART";
+                msg.body_length(strlen(bod));
+                memcpy(msg.body(), bod, msg.body_length()+1);
+                msg.encode_header();
+                room_.deliver(msg);
+
                 if(!strcmp(arg, "SHARED"))
                 {
-
+                  chat_message msg;
+                  char bod[] = "END";
+                  msg.body_length(strlen(bod));
+                  memcpy(msg.body(), bod, msg.body_length()+1);
+                  msg.encode_header();
+                  room_.deliver(msg);
                 }
                 else if(!strcmp(arg, "USERS"))
                 {
-
+                  chat_message msg;
+                  char bod[] = "END";
+                  msg.body_length(strlen(bod));
+                  memcpy(msg.body(), bod, msg.body_length()+1);
+                  msg.encode_header();
+                  room_.deliver(msg);
                 }
                 else if(!strcmp(arg, "ALLUSERS"))
                 {
-
+                  unsigned int i;
+                  chat_message msg;
+                  for(i=0; i<ALLUSERS.size(); i++)
+                  {
+                    char* bod = strdup(ALLUSERS[i].c_str());
+                    msg.body_length(strlen(bod));
+                    memcpy(msg.body(), bod, msg.body_length()+1);
+                    msg.encode_header();
+                    room_.deliver(msg);
+                  }
+                  char bod[] = "END";
+                  msg.body_length(strlen(bod));
+                  memcpy(msg.body(), bod, msg.body_length()+1);
+                  msg.encode_header();
+                  room_.deliver(msg);
                 }
                 else if(!strcmp(arg, "MSSGS"))
                 {
-
+                  chat_message msg;
+                  char bod[] = "END";
+                  msg.body_length(strlen(bod));
+                  memcpy(msg.body(), bod, msg.body_length()+1);
+                  msg.encode_header();
+                  room_.deliver(msg);
                 }
                 else if(!strcmp(arg, "CHATROOMS"))
                 {
-
+                  chat_message msg;
+                  char bod[] = "END";
+                  msg.body_length(strlen(bod));
+                  memcpy(msg.body(), bod, msg.body_length()+1);
+                  msg.encode_header();
+                  room_.deliver(msg);
+                }
+                else
+                {
+                  chat_message msg;
+                  char bod[] = "END";
+                  msg.body_length(strlen(bod));
+                  memcpy(msg.body(), bod, msg.body_length()+1);
+                  msg.encode_header();
+                  room_.deliver(msg);
                 }
               }
             }
 
 
-            room_.deliver(read_msg_);
+            //room_.deliver(read_msg_);
             do_read_header();
           }
           else

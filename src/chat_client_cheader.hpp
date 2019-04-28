@@ -177,6 +177,7 @@ private:
 private:
   asio::io_context& io_context_;
   tcp::socket socket_;
+public:
   chat_message read_msg_;
   chat_message_queue write_msgs_;
   std::string filename;
