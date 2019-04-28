@@ -87,7 +87,6 @@ class student_chatroom
 public:
   std::vector<std::string> messages;
   std::vector<std::string> cur_users;
-private:
   std::string name;
   student_chatroom(std::string Name)
   {
@@ -95,7 +94,7 @@ private:
   }
 };
 std::vector<std::string> ALLUSERS;
-std::vector<student_chatroom> CHATROOMS;
+std::vector<student_chatroom> CHATROOMS = {student_chatroom("Lobby")};
 
 class chat_session
   : public chat_participant,
@@ -154,10 +153,11 @@ private:
           {
             read_msg_.body()[read_msg_.body_length()] = '\0';
 	          std::cout<<"Received: '"<<read_msg_.body()<<"'"<<std::endl;
-
             char body[read_msg_.body_length()+1];
             strcpy(body, read_msg_.body());
+
             char* tok = strtok(body, "-");
+
             char arg[read_msg_.body_length()+1];
             if(tok)
             {
@@ -166,6 +166,7 @@ private:
               {
                 printf("Adding new user %s\n", arg);
                 ALLUSERS.push_back(arg);
+                CHATROOMS[0].cur_users.push_back(arg);// lobby
                 unsigned int i;
                 for(i = 0; i < ALLUSERS.size(); i++)
                 {
@@ -176,11 +177,29 @@ private:
               {
                 printf("Logging off user %s\n", arg);
                 std::string argstr = arg;
+                CHATROOMS[current_room].cur_users.erase( std::remove(begin(CHATROOMS[current_room].cur_users), end(CHATROOMS[current_room].cur_users), argstr), end(CHATROOMS[current_room].cur_users));
                 ALLUSERS.erase( std::remove(begin(ALLUSERS), end(ALLUSERS), argstr), end(ALLUSERS));
               }
               else if(!strcmp(tok, "NEW_ROOM"))
               {
                 printf("Attempting to create %s\n", arg);
+                if(CHATROOMS.size() < 10)
+                {
+                  std::string name = arg;
+                  unsigned int x, i;
+                  for(i=0, x=0; i<CHATROOMS.size(); i++)
+                  {
+                    if(!name.compare(CHATROOMS[i].name))
+                    {
+                      x++;
+                    }
+                  }
+                  if(!x)
+                  {
+                    student_chatroom addition(name);
+                    CHATROOMS.push_back(addition);
+                  }
+                }
               }
               else if(!strcmp(tok, "DEL_ROOM"))
               {
@@ -189,78 +208,67 @@ private:
               else if(!strcmp(tok, "GET"))
               {
                 chat_message msg;
-                char bod[] = "GETSTART";
-                msg.body_length(strlen(bod));
-                memcpy(msg.body(), bod, msg.body_length()+1);
-                msg.encode_header();
-                room_.deliver(msg);
+                char bod[512] = "GETSTART#";
+
 
                 if(!strcmp(arg, "SHARED"))
                 {
-                  chat_message msg;
-                  char bod[] = "END";
-                  msg.body_length(strlen(bod));
-                  memcpy(msg.body(), bod, msg.body_length()+1);
-                  msg.encode_header();
-                  room_.deliver(msg);
+
                 }
                 else if(!strcmp(arg, "USERS"))
                 {
-                  chat_message msg;
-                  char bod[] = "END";
-                  msg.body_length(strlen(bod));
-                  memcpy(msg.body(), bod, msg.body_length()+1);
-                  msg.encode_header();
-                  room_.deliver(msg);
+                  unsigned int i;
+                  for(i=0; i<ALLUSERS.size(); i++)
+                  {
+                    strcat(bod, CHATROOMS[0].cur_users[i].c_str());
+                    strcat(bod,"#");
+                  }
                 }
                 else if(!strcmp(arg, "ALLUSERS"))
                 {
                   unsigned int i;
-                  chat_message msg;
                   for(i=0; i<ALLUSERS.size(); i++)
                   {
-                    char* bod = strdup(ALLUSERS[i].c_str());
-                    msg.body_length(strlen(bod));
-                    memcpy(msg.body(), bod, msg.body_length()+1);
-                    msg.encode_header();
-                    room_.deliver(msg);
+                    strcat(bod, ALLUSERS[i].c_str());
+                    strcat(bod,"#");
                   }
-                  char bod[] = "END";
-                  msg.body_length(strlen(bod));
-                  memcpy(msg.body(), bod, msg.body_length()+1);
-                  msg.encode_header();
-                  room_.deliver(msg);
                 }
                 else if(!strcmp(arg, "MSSGS"))
                 {
-                  chat_message msg;
-                  char bod[] = "END";
-                  msg.body_length(strlen(bod));
-                  memcpy(msg.body(), bod, msg.body_length()+1);
-                  msg.encode_header();
-                  room_.deliver(msg);
+                  unsigned int i;
+                  for(i=0; i<CHATROOMS[current_room].messages.size(); i++)
+                  {
+                    strcat(bod, CHATROOMS[current_room].messages[i].c_str());
+                    strcat(bod,"#");
+                  }
                 }
                 else if(!strcmp(arg, "CHATROOMS"))
                 {
-                  chat_message msg;
-                  char bod[] = "END";
-                  msg.body_length(strlen(bod));
-                  memcpy(msg.body(), bod, msg.body_length()+1);
-                  msg.encode_header();
-                  room_.deliver(msg);
+                  unsigned int i;
+                  for(i=0; i<CHATROOMS.size(); i++)
+                  {
+                    strcat(bod, CHATROOMS[i].name.c_str());
+                    strcat(bod,"#");
+                  }
                 }
-                else
-                {
-                  chat_message msg;
-                  char bod[] = "END";
-                  msg.body_length(strlen(bod));
-                  memcpy(msg.body(), bod, msg.body_length()+1);
-                  msg.encode_header();
-                  room_.deliver(msg);
-                }
+
+                strcat(bod, "END#");
+                msg.body_length(strlen(bod));
+                memcpy(msg.body(), bod, msg.body_length()+1);
+                msg.encode_header();
+                std::cout<<"Delivering: "<<msg.body()<<std::endl;
+                room_.deliver(msg);
+              }
+              else if(!strcmp(tok, "CHAT"))
+              {
+                std::string X = arg;
+                CHATROOMS[current_room].messages.push_back(X);
+              }
+              else if(!strcmp(tok, "CHANGE"))
+              {
+                current_room = atoi(arg);
               }
             }
-
 
             //room_.deliver(read_msg_);
             do_read_header();
@@ -300,6 +308,7 @@ private:
   chat_message read_msg_;
   chat_message_queue write_msgs_;
 
+  int current_room = 0;
 };
 
 

@@ -143,6 +143,29 @@ private:
           if (!ec)
           {
             do_read_header();
+            //std::cout<<"Received: '"<<read_msg_.body()<<"'"<<std::endl;
+
+            std::string message = read_msg_.body();
+            char* c_str = strdup(message.c_str());
+            char* tok = strtok(c_str, "#");
+            if(tok && !strcmp(tok, "GETSTART"))
+            {
+              while(ret_vec.size())
+              {
+                ret_vec.pop_back();
+              }
+              tok = strtok(NULL, "#");
+              while( tok && strcmp(tok, "END"))
+              {
+                std::string append = tok;
+                //puts(tok);
+                ret_vec.push_back(append);
+                tok = strtok(NULL, "#");
+              }
+              update_num++;
+              update_num = update_num % 1000;
+            }
+            memset(read_msg_.body(), '0', read_msg_.body_length());
           }
           else
           {
@@ -177,11 +200,13 @@ private:
 private:
   asio::io_context& io_context_;
   tcp::socket socket_;
-public:
   chat_message read_msg_;
   chat_message_queue write_msgs_;
   std::string filename;
   char* username;
+public:
+  std::vector<std::string> ret_vec;
+  int update_num;
 };
 
 #endif // CHAT_CLIENT_HPP
