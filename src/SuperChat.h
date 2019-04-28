@@ -27,6 +27,7 @@ private:
   void display_Login(); // Displays the login screen
   int display_ChatroomSelect();
   void display_Chatroom(word_search searcher);
+  void change_chatroom(int index);
 
   void add_blacklist(char* banning_target); // Opens Superchat~ and adds an entry
   void remove_blacklist(std::string removal_target);// Opens ~SuperChat and deletes a specific entry
