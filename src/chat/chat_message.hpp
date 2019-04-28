@@ -1,13 +1,3 @@
-//
-// chat_message.hpp
-// ~~~~~~~~~~~~~~~~
-//
-// Copyright (c) 2003-2018 Christopher M. Kohlhoff (chris at kohlhoff dot com)
-//
-// Distributed under the Boost Software License, Version 1.0. (See accompanying
-// file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
-//
-
 #ifndef CHAT_MESSAGE_HPP
 #define CHAT_MESSAGE_HPP
 
@@ -52,12 +42,12 @@ public:
 
   const char* body() const
   {
-    return data_ + header_length+username_length;
+    return data_ + header_length+username_length+4;
   }
 
   char* body()
   {
-    return data_ + header_length +username_length;
+    return data_ + header_length +username_length+4;
   }
 
   std::size_t body_length() const
@@ -80,10 +70,12 @@ public:
     
     //Added finding the username that is sent
     char username_size[5]="";
-    std::strncat(username_size, data_+5, 4);
+
+    std::memcpy(username_size,&data_[4],4);
+
+
     username_length = std::atoi(username_size);
 
-    std::strncat(username,data_+10,username_length);
 
     if (body_length_ > max_body_length)
     {
@@ -95,12 +87,15 @@ public:
 
   void encode_header()
   {
-    char header[header_length + 1] = ""; 
+    char header[header_length+max_username+4 + 1] = ""; 
     std::sprintf(header, "%4d%4d%s", static_cast<int>(body_length_),static_cast<int>(username_length),username);
-    std::memcpy(data_, header, header_length+max_username);
+    std::memcpy(data_, header, header_length+4+username_length);
     
   }
 
+  std::size_t get_username_length(){
+    return username_length;
+  }
 private:
 
   char data_[header_length + max_body_length+max_username];
