@@ -414,7 +414,7 @@ int Client_Window::display_ChatroomSelect()
         if(send_chatroom_delete(selection_offset))
     	  {
           selection_offset = 0;
-      	  mvprintw(21,0, "Chatroom successfully deleted.");
+      	 // mvprintw(21,0, "Chatroom successfully deleted.");
 	      }
         else
           mvprintw(21,0, "Chatroom is not empty or is Lobby, cannot delete.");
@@ -688,6 +688,13 @@ void Client_Window::send_message_to_chat(char* input)
 {
   char bod[512];
   sprintf(bod, "CHAT-%s",input);
+  for(int i = 0; i<strlen(bod);i++)
+  {
+    if(bod[i]=='#')
+    {
+      bod[i]='~';
+    }
+  }
   chat_message msg;
   msg.body_length(strlen(bod));
   memcpy(msg.body(), bod, msg.body_length()+1);
@@ -748,5 +755,7 @@ void Client_Window::GUI_main(chat_client* Lobby)
     x = display_ChatroomSelect();                    // Allows the user to change lobby, ends the program when they sign out.
   }
   endwin();
+  free(secret_msg_code);
+  free(username);
   puts("Exiting Superchat by signoff\n");
 }

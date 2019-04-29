@@ -123,6 +123,7 @@ public:
     }
   }
 
+
 private:
   void do_read_header()
   {
@@ -152,7 +153,7 @@ private:
           if (!ec)
           {
             read_msg_.body()[read_msg_.body_length()] = '\0';
-	          std::cout<<"Received: '"<<read_msg_.body()<<"'"<<std::endl;
+	          //UNCOMMENT FOR SERVER NOTES: std::cout<<"Received: '"<<read_msg_.body()<<"'"<<std::endl;
             char body[read_msg_.body_length()+1];
             strcpy(body, read_msg_.body());
 
@@ -164,13 +165,17 @@ private:
               strcpy(arg, &(read_msg_.body()[strlen(tok)+1]));
               if(!strcmp(tok, "NEW_USER"))
               {
-                printf("Adding new user %s\n", arg);
-                ALLUSERS.push_back(arg);
-                CHATROOMS[0].cur_users.push_back(arg);// lobby
-                unsigned int i;
-                for(i = 0; i < ALLUSERS.size(); i++)
+                if(ALLUSERS.size()<50)
                 {
-                  std::cout<<ALLUSERS[i]<<std::endl;
+                  printf("Adding new user %s\n", arg);
+                  ALLUSERS.push_back(arg);
+
+                  CHATROOMS[0].cur_users.push_back(arg);// lobby
+                  unsigned int i;
+                  for(i = 0; i < ALLUSERS.size(); i++)
+                  {
+                    std::cout<<ALLUSERS[i]<<std::endl;
+                  }
                 }
               }
               else if(!strcmp(tok, "LOGOFF"))
@@ -262,7 +267,7 @@ private:
                 msg.body_length(strlen(bod));
                 memcpy(msg.body(), bod, msg.body_length()+1);
                 msg.encode_header();
-                std::cout<<"Delivering: "<<msg.body()<<std::endl;
+              //Uncomment for server notes:  std::cout<<"Delivering: "<<msg.body()<<std::endl;
                 room_.deliver(msg);
               }
               else if(!strcmp(tok, "CHAT"))
