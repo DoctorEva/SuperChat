@@ -59,9 +59,9 @@ class word_search{
 
     //First remove all punctuation
     std::string result;
-    std::remove_copy_if(word_check.begin(), word_check.end(),            
-                        std::back_inserter(result), //Store output           
-                        std::ptr_fun<int, int>(&std::ispunct)  
+    std::remove_copy_if(word_check.begin(), word_check.end(),
+                        std::back_inserter(result), //Store output
+                        std::ptr_fun<int, int>(&std::ispunct)
                        );
     //Check if it is a number
     if(is_number(result))
@@ -77,7 +77,7 @@ class word_search{
 
   bool is_number(const std::string& s)
   {
-    return !s.empty() && std::find_if(s.begin(), 
+    return !s.empty() && std::find_if(s.begin(),
         s.end(), [](char c) { return !std::isdigit(c); }) == s.end();
   }
 
@@ -104,13 +104,6 @@ public:
         {
           bool write_in_progress = !write_msgs_.empty();
           write_msgs_.push_back(msg);
-          /*
-            std::ofstream fout;
-            std::string line;
-      	    fout.open("./rooms/"+filename, std::ios::app);
-      	    fout<<username<< ": "<<msg.body()<<"\n"; //print message to file.
-      	    fout.close();
-          */
           if (!write_in_progress)
           {
             do_write();
@@ -166,20 +159,20 @@ private:
 
             std::string message = read_msg_.body();
             char* c_str = strdup(message.c_str());
-            char* tok = strtok(c_str, "#");
-            if(tok && !strcmp(tok, "GETSTART"))
+            char* tok = strtok(c_str, "'\n'");
+            if(tok && !strcmp(tok, request.c_str()))
             {
               while(ret_vec.size())
               {
                 ret_vec.pop_back();
               }
-              tok = strtok(NULL, "#");
+              tok = strtok(NULL, "\n");
               while( tok && strcmp(tok, "END"))
               {
                 std::string append = tok;
                 //puts(tok);
                 ret_vec.push_back(append);
-                tok = strtok(NULL, "#");
+                tok = strtok(NULL, "\n");
               }
               update_num++;
               update_num = update_num % 1000;
@@ -226,6 +219,7 @@ private:
 public:
   std::vector<std::string> ret_vec;
   int update_num;
+  std::string request;
 };
 
 #endif // CHAT_CLIENT_HPP

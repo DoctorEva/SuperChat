@@ -688,6 +688,7 @@ void Client_Window::send_message_to_chat(char* input)
 {
   char bod[512];
   sprintf(bod, "CHAT-%s",input);
+  /*
   for(int i = 0; i<strlen(bod);i++)
   {
     if(bod[i]=='#')
@@ -695,6 +696,7 @@ void Client_Window::send_message_to_chat(char* input)
       bod[i]='~';
     }
   }
+  */
   chat_message msg;
   msg.body_length(strlen(bod));
   memcpy(msg.body(), bod, msg.body_length()+1);
@@ -716,6 +718,7 @@ std::vector<std::string> Client_Window::get_from_server(std::string request)
   CHATROOMS = list of chatrooms on server
   */
   // Sending Request
+  c->request = request;
   int start = c->update_num;
   sprintf(bod,"GET-%s",request.c_str());
   msg.body_length(strlen(bod));
@@ -724,6 +727,7 @@ std::vector<std::string> Client_Window::get_from_server(std::string request)
   c->write(msg, currentChatroom, username);
 
   while(start == c->update_num);
+  c->request = "none";
   return c->ret_vec;
 }
 

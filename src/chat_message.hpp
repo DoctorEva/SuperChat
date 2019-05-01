@@ -18,8 +18,8 @@
 class chat_message
 {
 public:
-  enum { header_length = 4 };
-  enum { max_body_length = 512 };
+  enum { header_length = 5 };
+  enum { max_body_length = 8192 };
 
   chat_message()
     : body_length_(0)
@@ -78,8 +78,8 @@ public:
 
   void encode_header()
   {
-    char header[header_length + 1] = ""; 
-    std::sprintf(header, "%4d", static_cast<int>(body_length_));
+    char header[header_length + 1] = "";
+    std::sprintf(header, "%5d", static_cast<int>(body_length_));
     std::memcpy(data_, header, header_length);
   }
 

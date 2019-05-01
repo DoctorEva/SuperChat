@@ -153,7 +153,8 @@ private:
           if (!ec)
           {
             read_msg_.body()[read_msg_.body_length()] = '\0';
-	          //UNCOMMENT FOR SERVER NOTES: std::cout<<"Received: '"<<read_msg_.body()<<"'"<<std::endl;
+	          //UNCOMMENT FOR SERVER NOTES:
+            std::cout<<"Received: '"<<read_msg_.body()<<"'"<<std::endl;
             char body[read_msg_.body_length()+1];
             strcpy(body, read_msg_.body());
 
@@ -219,7 +220,8 @@ private:
               else if(!strcmp(tok, "GET"))
               {
                 chat_message msg;
-                char bod[512] = "GETSTART#";
+                char bod[8192];
+                sprintf(bod, "%s\n", arg);
 
 
                 if(!strcmp(arg, "SHARED"))
@@ -232,7 +234,7 @@ private:
                   for(i=0; i<CHATROOMS[current_room].cur_users.size(); i++)
                   {
                     strcat(bod, CHATROOMS[current_room].cur_users[i].c_str());
-                    strcat(bod,"#");
+                    strcat(bod,"\n");
                   }
                 }
                 else if(!strcmp(arg, "ALLUSERS"))
@@ -241,7 +243,7 @@ private:
                   for(i=0; i<ALLUSERS.size(); i++)
                   {
                     strcat(bod, ALLUSERS[i].c_str());
-                    strcat(bod,"#");
+                    strcat(bod,"\n");
                   }
                 }
                 else if(!strcmp(arg, "MSSGS"))
@@ -250,7 +252,7 @@ private:
                   for(i=0; i<CHATROOMS[current_room].messages.size(); i++)
                   {
                     strcat(bod, CHATROOMS[current_room].messages[i].c_str());
-                    strcat(bod,"#");
+                    strcat(bod,"\n");
                   }
                 }
                 else if(!strcmp(arg, "CHATROOMS"))
@@ -259,15 +261,16 @@ private:
                   for(i=0; i<CHATROOMS.size(); i++)
                   {
                     strcat(bod, CHATROOMS[i].name.c_str());
-                    strcat(bod,"#");
+                    strcat(bod,"\n");
                   }
                 }
 
-                strcat(bod, "END#");
+                strcat(bod, "END\n");
                 msg.body_length(strlen(bod));
                 memcpy(msg.body(), bod, msg.body_length()+1);
                 msg.encode_header();
-              //Uncomment for server notes:  std::cout<<"Delivering: "<<msg.body()<<std::endl;
+                //Uncomment for server notes:
+                std::cout<<"Delivering: "<<msg.body()<<std::endl;
                 room_.deliver(msg);
               }
               else if(!strcmp(tok, "CHAT"))
