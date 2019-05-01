@@ -284,7 +284,7 @@ private:
                 int old_room = current_room;
                 current_room = atoi(tok);
                 puts(tok);
-                tok = strtok(NULL, " ");
+                tok = strtok(NULL, "");
                 CHATROOMS[old_room].cur_users.erase( std::remove(begin(CHATROOMS[old_room].cur_users), end(CHATROOMS[old_room].cur_users), tok), end(CHATROOMS[old_room].cur_users));
                 CHATROOMS[current_room].cur_users.push_back(tok);
                 puts(tok);
