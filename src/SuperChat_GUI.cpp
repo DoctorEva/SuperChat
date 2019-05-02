@@ -77,7 +77,7 @@ void Client_Window::display_Login()
       mvwgetnstr(Login_Window, 8, 3, input_name, NICKNAME_CHARS);
     }
     input_name[NICKNAME_CHARS] = '\0'; // Truncates the string to the max num of characters.
-    if(send_login_request(input_name))
+    if(send_login_request(input_name) && (sizeof(input_name)<24))
     {
       wmove(Login_Window, 9, 3);
       wclrtobot(Login_Window);
