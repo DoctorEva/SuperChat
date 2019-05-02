@@ -16,4 +16,4 @@ chat_client: chat_client.o
 chat_server: chat_server.o
 	${CXX} -o chat_server chat_server.o -lpthread
 clean:
-	rm -f *.o && cd .. && rm -f chat_client chat_server && echo "Cleaned up"
+	rm -f *.o && cd .. && rm -f chat_client chat_server ChatRooms && rm -rf rooms && echo "Cleaned up"
