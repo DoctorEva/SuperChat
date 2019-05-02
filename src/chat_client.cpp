@@ -31,16 +31,16 @@ int main(int argc, char* argv[])
 {
   try
   {
-    /*if (argc != 3)
+    if (argc != 3)
     {
       std::cerr << "Usage: chat_client <host> <port>\n";
       return 1;
-    }*/
+    }
 
     asio::io_context io_context;
 
     tcp::resolver resolver(io_context);
-    auto endpoints = resolver.resolve("127.0.0.1", "9000"); //originally argv[1] and argv[2]
+    auto endpoints = resolver.resolve(argv[1], argv[2]); //originally argv[1] and argv[2]
     chat_client c(io_context, endpoints);
     chat_client* client = &c; //dlete
     std::thread t([&io_context](){ io_context.run(); });
