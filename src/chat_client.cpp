@@ -7,6 +7,8 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Modified by  Jezreel Aquitania, Douglas Zenger, Thomas Tran
+// Copyright 2019
 
 #include <cstdlib>
 #include <stdlib.h>
@@ -40,25 +42,14 @@ int main(int argc, char* argv[])
     asio::io_context io_context;
 
     tcp::resolver resolver(io_context);
-    auto endpoints = resolver.resolve(argv[1], argv[2]); //originally argv[1] and argv[2]
+    auto endpoints = resolver.resolve(argv[1], argv[2]);
     chat_client c(io_context, endpoints);
-    chat_client* client = &c; //dlete
+    chat_client* client = &c;
     std::thread t([&io_context](){ io_context.run(); });
-    //chat_message msg;//move back into while loop if doesn't work.
-    
+
+
     Client_Window A;
     A.GUI_main(client); //Begins the GUI. Modified to take in a client pointer.
-
-    /*char input_mssg[chat_message::max_body_length + 1];
-    while (std::cin.getline(input_mssg, chat_message::max_body_length + 1))
-    {
-      
-      //std::strcat(line, " -Jezzy testing. "); //Edited 1s
-      msg.body_length(std::strlen(input_mssg));
-      std::memcpy(msg.body(), line, msg.body_length());
-      msg.encode_header();
-      c.write(msg);
-    }*/
 
     c.close();
     t.join();

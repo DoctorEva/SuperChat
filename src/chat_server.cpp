@@ -7,6 +7,7 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Modified by Thomas Tran
 
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -29,7 +30,7 @@ int main(int argc, char* argv[])
 {
   if(!remove("ChatRooms"))
     printf("Removed old ChatRooms file\n");
-  if(!remove("rooms")) // TODO - This currently doesnt work because "rooms" is not empty. Maybe this doesnt need to be fixed.
+  if(!remove("rooms")) 
     printf("Removed old rooms directory\n");
 
   FILE* spawn = fopen("ChatRooms", "w");

@@ -1,5 +1,5 @@
 //
-// chat_client_header.hpp
+// chat_client_cheader.hpp
 // ~~~~~~~~~~~~~~~
 //
 // Copyright (c) 2003-2018 Christopher M. Kohlhoff (chris at kohlhoff dot com)
@@ -7,6 +7,8 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Modified by  Jezreel Aquitania, Douglas Zenger, Thomas Tran
+// Copyright 2019
 
 #ifndef CHAT_CLIENT_HPP
 #define CHAT_CLIENT_HPP
@@ -81,7 +83,6 @@ class word_search{
         s.end(), [](char c) { return !std::isdigit(c); }) == s.end();
   }
 
-  //bool sortname(const std::string &lhs, const std::string &rhs) { return *lhs < *rhs; }
 };
 
 class chat_client
@@ -95,7 +96,7 @@ public:
     do_connect(endpoints);
   }
 
-  void write(const chat_message& msg, std::string fileName, char* userName)
+  void write(const chat_message& msg, std::string fileName, char* userName) //Write to server
   {
     filename = fileName;
     username = userName;
@@ -116,7 +117,7 @@ public:
     asio::post(io_context_, [this]() { socket_.close(); });
   }
 
-private:
+private: //Binds a client to a server
   void do_connect(const tcp::resolver::results_type& endpoints)
   {
     asio::async_connect(socket_, endpoints,
@@ -146,7 +147,7 @@ private:
         });
   }
 
-  void do_read_body()
+  void do_read_body() //Reads message from server
   {
     asio::async_read(socket_,
         asio::buffer(read_msg_.body(), read_msg_.body_length()),
@@ -155,7 +156,7 @@ private:
           if (!ec)
           {
             do_read_header();
-            //std::cout<<"Received: '"<<read_msg_.body()<<"'"<<std::endl;
+
 
             std::string message = read_msg_.body();
             char* c_str = strdup(message.c_str());
@@ -170,7 +171,7 @@ private:
               while( tok && strcmp(tok, "END"))
               {
                 std::string append = tok;
-                //puts(tok);
+
                 ret_vec.push_back(append);
                 tok = strtok(NULL, "\n");
               }
@@ -187,7 +188,7 @@ private:
         });
   }
 
-  void do_write()
+  void do_write() //Writes message to server
   {
     asio::async_write(socket_,
         asio::buffer(write_msgs_.front().data(),

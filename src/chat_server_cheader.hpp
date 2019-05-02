@@ -7,6 +7,8 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// Modified by  Jezreel Aquitania and Thomas Tran
+// Copyright 2019
 
 #include <cstdlib>
 #include <deque>
@@ -43,7 +45,7 @@ public:
   void join(chat_participant_ptr participant)
   {
     participants_.insert(participant);
-    std::cout<<"A user has joined!"<<std::endl; //Remove
+    std::cout<<"A user has joined!"<<std::endl;
     for (auto msg: recent_msgs_)
       participant->deliver(msg);
   }
@@ -51,7 +53,7 @@ public:
   void leave(chat_participant_ptr participant)
   {
     participants_.erase(participant);
-    std::cout<<"User has left :("<<std::endl; //Remove
+    std::cout<<"User has left :("<<std::endl;
   }
 
   void deliver(const chat_message& msg)
@@ -211,7 +213,7 @@ private:
               {
                 printf("Attempting to delete %s\n", arg);
                 int index = atoi(arg);
-                //assert( index < CHATROOMS.size());
+
                 if(CHATROOMS[index].cur_users.size() == 0 && index)
                 {
                   CHATROOMS.erase(CHATROOMS.begin() + index);
@@ -269,7 +271,7 @@ private:
                 msg.body_length(strlen(bod));
                 memcpy(msg.body(), bod, msg.body_length()+1);
                 msg.encode_header();
-                //Uncomment for server notes:
+
                 std::cout<<"Delivering: "<<msg.body()<<std::endl;
                 room_.deliver(msg);
               }
@@ -291,7 +293,6 @@ private:
               }
             }
 
-            //room_.deliver(read_msg_);
             do_read_header();
           }
           else
